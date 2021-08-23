@@ -44,7 +44,7 @@ namespace lin_processor {
   }
 
   // Get current error flag and clear it. 
-  extern uint8 getAndClearErrorFlags();
+  extern boolean getAndClearErrorFlags();
   
   // Print to sio a list of error flags.
   extern void printErrorFlags(uint8 lin_errors);
