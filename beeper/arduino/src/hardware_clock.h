@@ -28,19 +28,19 @@ namespace hardware_clock {
   // every ~280ms.
   // Assumes interrupts are enabled upon entry.
   // DO NOT CALL THIS FROM AN ISR.
-  inline uint16 ticksForNonIsr() {
+  inline uint16_t ticksForNonIsr() {
     // We disable interrupt to avoid corruption of the AVR temp byte buffer
     // that is used to read 16 bit values.
     // TODO: can we avoid disabling interrupts (motivation: improve LIN ISR jitter).
     cli();
-    const uint16 result TCNT1;
+    const uint16_t result TCNT1;
     sei();
     return result;
   }
 
   // Similar to ticksNonIsr but does not enable interrupts.
   // CALL THIS FROM ISR ONLY.
-  inline uint16 ticksForIsr() {
+  inline uint16_t ticksForIsr() {
     return TCNT1; 
   }
 
@@ -49,7 +49,7 @@ namespace hardware_clock {
 #endif
 
   // @ 16Mhz / x64 prescaler. Number of ticks per a millisecond.
-  const uint32 kTicksPerMilli = 250;
+  const uint32_t kTicksPerMilli = 250;
 }  // namespace hardware_clock
 
 #endif  

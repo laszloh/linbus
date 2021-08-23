@@ -31,12 +31,12 @@ public:
     start_time_millis_ = other.start_time_millis_;
   }
 
-  inline uint32 timeMillis() const {
+  inline uint32_t timeMillis() const {
     return system_clock::timeMillis() - start_time_millis_;
   }
 
 private:
-  uint32 start_time_millis_;
+  uint32_t start_time_millis_;
 };
 
 #endif

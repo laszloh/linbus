@@ -69,9 +69,9 @@ void loop()
       // Used to trigger periodic error printing.
       static PassiveTimer lin_errors_timeout;
       // Accomulates error flags until next printing.
-      static uint8 pending_lin_errors = 0;
+      static uint8_t pending_lin_errors = 0;
       
-      const uint8 new_lin_errors = lin_processor::getAndClearErrorFlags();
+      const uint8_t new_lin_errors = lin_processor::getAndClearErrorFlags();
       if (new_lin_errors) {
         // Make the ERRORS led blinking.
         errors_activity_led.action();

@@ -27,7 +27,7 @@ namespace custom_defs {
   // LIN bus bits per second rate.
   // Supported baud range is 1000 to 20000. If out of range, using silently default
   // baud of 9600.
-  const uint16 kLinSpeed = 19200;
+  const uint16_t kLinSpeed = 19200;
   
 }  // namepsace custom_defs
 

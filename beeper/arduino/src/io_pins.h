@@ -27,12 +27,12 @@ namespace io_pins {
     // bit index is one of [7, 6, 5, 4, 3, 2, 1, 0] (lsb).
     // NOTE: ddr port is is always one address below portx.
     // NOTE: pin port is is always two addresses below portx.
-    OutputPin(volatile uint8& port, uint8 bitIndex) :
+    OutputPin(volatile uint8_t& port, uint8_t bitIndex) :
     port_(port),
     pin_(*((&port)-2)),
     bit_mask_(1 << bitIndex) {
       // NOTE: ddr port is is always one address below port.
-      volatile uint8& ddr = *((&port)-1);
+      volatile uint8_t& ddr = *((&port)-1);
       ddr |= bit_mask_;
       low();  // default state.
     } 
@@ -73,9 +73,9 @@ namespace io_pins {
     }
 
    private:
-    volatile uint8& port_;
-    volatile uint8& pin_;
-    const uint8 bit_mask_;
+    volatile uint8_t& port_;
+    volatile uint8_t& pin_;
+    const uint8_t bit_mask_;
   };
 
   // A class to abstract an input pin that is not necesarily an arduino 
@@ -83,11 +83,11 @@ namespace io_pins {
   class InputPin {
    public:
     // See OutputPin() for description of the args.
-    InputPin(volatile uint8& port, uint8 bitIndex) 
+    InputPin(volatile uint8_t& port, uint8_t bitIndex) 
    : 
       pin_(*((&port)-2)),
       bit_mask_(1 << bitIndex) { 
-        volatile uint8& ddr = *((&port)-1);
+        volatile uint8_t& ddr = *((&port)-1);
         ddr &= ~bit_mask_;  // input
         port |= bit_mask_;  // pullup
       } 
@@ -97,8 +97,8 @@ namespace io_pins {
     }
 
    private:
-    volatile uint8& pin_;
-    const uint8 bit_mask_;
+    volatile uint8_t& pin_;
+    const uint8_t bit_mask_;
   };
   
 }  // namespace io_pins

@@ -17,17 +17,17 @@
 
 namespace action_buzzer {
   // 2400Hz is the resonance frequency of Soberton WT-1205.
-  static const uint16 kFrequency = 2400;
+  static const uint16_t kFrequency = 2400;
 
   // Divider for given frequency, assuming 16Mhz clock, X256 prescaler.
-  static const uint8 kDivider = (16000000L / 256) / kFrequency;
+  static const uint8_t kDivider = (16000000L / 256) / kFrequency;
 
   // Output is OC0B from timer 0 (same as PD5).
-  static const uint8 kPinMask =  H(PIND5);
+  static const uint8_t kPinMask =  H(PIND5);
 
   // Even index slots are ON, odd index slots are off. Values are
   // slot time in millis
-  static const  uint16 kSlotTimesMillis1[] PROGMEM = {
+  static const  uint16_t kSlotTimesMillis1[] PROGMEM = {
     200, // on
     150,
     200, // on
@@ -43,7 +43,7 @@ namespace action_buzzer {
   
   // Even index slots are ON, odd index slots are off. Values are
   // slot time in millis
-  static const  uint16 kSlotTimesMillis2[] PROGMEM = {
+  static const  uint16_t kSlotTimesMillis2[] PROGMEM = {
     60, // on
     150,
     60, // on
@@ -51,7 +51,7 @@ namespace action_buzzer {
     0,   // end 
   };
   
-  static inline uint16 slotTimeMillis(uint8 sequence, uint8 slot_index) {
+  static inline uint16_t slotTimeMillis(uint8_t sequence, uint8_t slot_index) {
     if (sequence == 1) {
       return pgm_read_word(&kSlotTimesMillis1[slot_index]);
     }
@@ -66,10 +66,10 @@ namespace action_buzzer {
   static boolean state_is_active;
 
   // When in active state, indicates the current sequence we are playing (1 or 2).
-  static uint8 active_sequence_number;
+  static uint8_t active_sequence_number;
   
   // When state is active, indicates the index of the current slot
-  static uint8 active_slot_index;
+  static uint8_t active_slot_index;
 
   // Turn buzzer on.
   void buzzerOn() {
@@ -132,7 +132,7 @@ namespace action_buzzer {
   // Called from loop() when in ACTIVE state.
   static inline void loopInActiveState() {
     // If within current slot time then do nothing.
-    const uint16 slot_time_millis = slotTimeMillis(active_sequence_number, active_slot_index);
+    const uint16_t slot_time_millis = slotTimeMillis(active_sequence_number, active_slot_index);
     if (timer.timeMillis() < slot_time_millis) {
       return;
     }
@@ -140,7 +140,7 @@ namespace action_buzzer {
     // Advance to next slot.
     timer.restart();
     active_slot_index++;
-    const uint16 next_slot_time_millis = slotTimeMillis(active_sequence_number, active_slot_index);
+    const uint16_t next_slot_time_millis = slotTimeMillis(active_sequence_number, active_slot_index);
         
     // If this is a normal slot, start playing it.
     if (next_slot_time_millis) {

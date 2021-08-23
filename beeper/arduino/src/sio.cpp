@@ -21,17 +21,17 @@ namespace sio {
   // Size of output bytes queue. Shuold be <= 128 to avoid overflow.
   // TODO: reduce buffer size? Do we have enough RAM?
   // TODO: increase index size to 16 bit and increase buffer size to 200?
-  static const uint8 kQueueSize = 120;
-  static uint8 buffer[kQueueSize];
+  static const uint8_t kQueueSize = 120;
+  static uint8_t buffer[kQueueSize];
   // Index of the oldest entry in buffer.
-  static uint8 start;
+  static uint8_t start;
   // Number of bytes in queue.
-  static uint8 count;
+  static uint8_t count;
 
   // Caller need to verify that count < kQueueSize before calling this.
   static void unsafe_enqueue(byte b) {
     // kQueueSize is small enough that this will not overflow.
-    uint8 next = start + count;
+    uint8_t next = start + count;
     if (next >= kQueueSize) {
       next -= kQueueSize;
     } 
@@ -41,7 +41,7 @@ namespace sio {
 
   // Caller need to verify that count > 1 before calling this.
   static byte unsafe_dequeue() {
-    const uint8 b = buffer[start];
+    const uint8_t b = buffer[start];
     if (++start >= kQueueSize) {
       start = 0;
     }
@@ -67,7 +67,7 @@ namespace sio {
     UCSR0C = H(UDORD0) | H(UCPHA0);  //(3 << UCSZ00);  
   }
 
-  void printchar(uint8 c) {
+  void printchar(uint8_t c) {
     // If buffer is full, drop this char.
     // TODO: drop last byte to make room for the new byte?
     if (count >= kQueueSize) {
@@ -82,7 +82,7 @@ namespace sio {
     }
   }
 
-  uint8 capacity() {
+  uint8_t capacity() {
     return kQueueSize - count;
   }
 
@@ -94,7 +94,7 @@ namespace sio {
   }
 
   // Assuming n is in [0, 15].
-  static void printHexDigit(uint8 n) {
+  static void printHexDigit(uint8_t n) {
     if (n < 10) {
       printchar((char)('0' + n));
     } 
@@ -103,7 +103,7 @@ namespace sio {
     }    
   }
 
-  void printhex2(uint8 b) {
+  void printhex2(uint8_t b) {
     printHexDigit(b >> 4);
     printHexDigit(b & 0xf);
   }

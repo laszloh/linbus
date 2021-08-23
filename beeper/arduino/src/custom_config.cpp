@@ -23,11 +23,11 @@ namespace custom_config {
 
   // The entire config toggle suquence from ignition on to ignition off must be completed within
   // time time.
-  static const uint16 kSequenceTimeoutMillis = 20 * 1000;
+  static const uint16_t kSequenceTimeoutMillis = 20 * 1000;
 
   // The config toggle sequence need to include exactly this number of consecutive
   // button presses.
-  static const uint8 kExpectedButtonClicks = 6;
+  static const uint8_t kExpectedButtonClicks = 6;
 
   // Variables used in .h file.
   namespace private_ {
@@ -36,37 +36,37 @@ namespace custom_config {
 
   // A single byte enum representing the states of the config sequence state machine.
   namespace states {
-    static const uint8 IGNITION_OFF_IDLE = 0;
-    static const uint8 IGNITION_ON_COUNTING = 1;
-    static const uint8 IGNITION_ON_IDLE = 2;
-    static const uint8 IGNITION_OFF_TOGGLE_CONFIG = 3;
+    static const uint8_t IGNITION_OFF_IDLE = 0;
+    static const uint8_t IGNITION_ON_COUNTING = 1;
+    static const uint8_t IGNITION_ON_IDLE = 2;
+    static const uint8_t IGNITION_OFF_TOGGLE_CONFIG = 3;
   }
 
   // Current button recognizer state. One of states:: values. 
-  static uint8 state;
+  static uint8_t state;
 
   // Time in current state.
   static PassiveTimer time_in_state;
 
   // Arbitrary 16bit code to store in the eeprom for on/off state.
-  namespace eeprom_uint16_code {
-    static const uint16 ENABLED = 0x1234;
-    static const uint16 DISABLED = 0x4568;
+  namespace eeprom_uint16_t_code {
+    static const uint16_t ENABLED = 0x1234;
+    static const uint16_t DISABLED = 0x4568;
   }
 
   // Set is_enabled flag from the configuration stored in the eeprom.
   static inline void loadEepromConfig() {
-    const uint16 eeprom_code = eeprom_read_word(0);
+    const uint16_t eeprom_code = eeprom_read_word(0);
 
     // If the code is unknown we default to enabled.
-    private_::is_enabled = eeprom_code != eeprom_uint16_code::DISABLED;
+    private_::is_enabled = eeprom_code != eeprom_uint16_t_code::DISABLED;
     sio::printf(F("config loaded: %d\n"), private_::is_enabled);
   }
 
   // Toggle the current configuration, with eeprom persistnce.
   static inline void toggleConfig() {
     // Toggle the eeprom code.
-    const uint16 eeprom_code = (private_::is_enabled) ? eeprom_uint16_code::DISABLED : eeprom_uint16_code::ENABLED;
+    const uint16_t eeprom_code = (private_::is_enabled) ? eeprom_uint16_t_code::DISABLED : eeprom_uint16_t_code::ENABLED;
     eeprom_write_word(0, eeprom_code);
     sio::printf(F("config toggled\n"));
 
@@ -78,7 +78,7 @@ namespace custom_config {
   }
 
   // Change to given state. Assumes not already in this state.
-  static inline void changeToState(uint8 new_state) {
+  static inline void changeToState(uint8_t new_state) {
     state = new_state;
     sio::printf(F("config state: %d\n"), state);
     time_in_state.restart();
@@ -92,8 +92,8 @@ namespace custom_config {
   // Called periodically from loop() to update the state machine.
   static inline void updateState() {
     // Valid in IGNITION_ON_COUNTING state only.
-    static uint8 button_click_count;
-    static uint8 button_last_state;
+    static uint8_t button_click_count;
+    static uint8_t button_last_state;
 
     // Handle the state transitions.
     switch (state) {
@@ -121,7 +121,7 @@ namespace custom_config {
             break;
           }
   
-          const uint8 button_new_state = custom_signals::config_button().state();
+          const uint8_t button_new_state = custom_signals::config_button().state();
           // Count change from non pressed to pressed.
           if ((button_last_state == SignalTracker::States::OFF) && (button_new_state == SignalTracker::States::ON)) {
             // This cannot overflow because we exist this state if exceeding kExpectedButtonClicks. 

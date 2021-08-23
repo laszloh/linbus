@@ -26,7 +26,7 @@ namespace system_clock {
 
   // Return time of last update() in millis since program start. Returns zero if update() was
   // never called. 
-  extern uint32 timeMillis();
+  extern uint32_t timeMillis();
  
 }  // namespace system_clock
 

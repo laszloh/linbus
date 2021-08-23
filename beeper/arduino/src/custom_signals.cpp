@@ -40,7 +40,7 @@ void loop() {
 // Handling of frame from sport mode button unit.
 void frameArrived(const LinFrame& frame) {
   // Get frame id.
-  const uint8 id = frame.get_byte(0);
+  const uint8_t id = frame.get_byte(0);
   
   // Handle the frame with config button status bit.
   if (id == 0x97) {

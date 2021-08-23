@@ -22,7 +22,7 @@
 // Requires loop() calls from main loop().
 class ActionLed {
 public:
-  ActionLed(volatile uint8& port, uint8 bitIndex) 
+  ActionLed(volatile uint8_t& port, uint8_t bitIndex) 
     : led_(port, bitIndex),
       pending_actions_(false) {
     enterIdleState();
@@ -58,13 +58,13 @@ public:
   
 private:
     // No pending actions. LED can be turned on as soon as a new action arrives.
-    static const uint8 kState_IDLE = 1;
+    static const uint8_t kState_IDLE = 1;
     // LED is pulsed on.
-    static const uint8 kState_ACTIVE_ON = 2;
+    static const uint8_t kState_ACTIVE_ON = 2;
     // LED was pulsed on and is now in a blackup period until it can be turned
     // on again.
-   static const uint8 kState_ACTIVE_OFF = 3; 
-   uint8 state_; 
+   static const uint8_t kState_ACTIVE_OFF = 3; 
+   uint8_t state_; 
   
   // The underlying pin of the led. Active high.
   io_pins::OutputPin led_;

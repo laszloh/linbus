@@ -53,7 +53,7 @@ void frameArrived(const LinFrame& frame) {
   custom_signals::frameArrived(frame);
 
   // We handle here only framed of id 39 with the reverse signal.
-  const uint8 id = frame.get_byte(0);
+  const uint8_t id = frame.get_byte(0);
   if (id != 0x39) {
     return;
   }

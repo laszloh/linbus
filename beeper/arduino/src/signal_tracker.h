@@ -21,11 +21,11 @@
 class SignalTracker {
 public:
 
-  // Tracked signal states. Using uint8 instead of enums which are int16.
+  // Tracked signal states. Using uint8_t instead of enums which are int16.
   struct States {
-    static const uint8 UNKNOWN = 0;
-    static const uint8 OFF = 1;
-    static const uint8 ON = 2;
+    static const uint8_t UNKNOWN = 0;
+    static const uint8_t OFF = 1;
+    static const uint8_t ON = 2;
    private:
     // do not instantiate.
     States() {
@@ -40,7 +40,7 @@ public:
   // * required_pending_reports_count - number of equal consecutive pending reports required to change a state.
   // * pending_report_ttl_millis - max time in millis between pending reports to consider consecutive.
   // * supporting_report_ttl_millis - max time in millis from the last supporting report before changing state to UNKNOWN.
-  SignalTracker(uint8 required_pending_reports_count, uint16 pending_report_ttl_millis, uint16 supporting_report_ttl_millis) 
+  SignalTracker(uint8_t required_pending_reports_count, uint16_t pending_report_ttl_millis, uint16_t supporting_report_ttl_millis) 
   :  
     required_pending_reports_count_(required_pending_reports_count),
     pending_report_ttl_millis_(pending_report_ttl_millis),
@@ -109,7 +109,7 @@ public:
   }
 
   // Retrieves the current state. Returns one of States values. Does not change state.
-  inline uint8 state() const {
+  inline uint8_t state() const {
     return state_;
   }
   
@@ -124,7 +124,7 @@ public:
   }
   
   // Convinience method.
-  inline boolean isOnForAtLeastMillis(uint32 min_time_in_state) const {
+  inline boolean isOnForAtLeastMillis(uint32_t min_time_in_state) const {
     return isOn() &&  (timeInStateMillis() >= min_time_in_state);
   }
   
@@ -136,17 +136,17 @@ public:
   // Returns time in millis in current state. Since getState() does not change state, calling it
   // after getState() will return the time for the state returns by getState().  (that is, no race
   // condition.). 
-  inline uint32 timeInStateMillis() const {
+  inline uint32_t timeInStateMillis() const {
     return time_in_state_.timeMillis();
   }
 
 private:
-  const uint8 required_pending_reports_count_;
-  const uint16 pending_report_ttl_millis_;
-  const uint16 supporting_report_ttl_millis_;
+  const uint8_t required_pending_reports_count_;
+  const uint16_t pending_report_ttl_millis_;
+  const uint16_t supporting_report_ttl_millis_;
 
   // The current state. One of States values.
-  uint8 state_;
+  uint8_t state_;
 
   // Time in the current state state_.
   PassiveTimer time_in_state_;
@@ -157,7 +157,7 @@ private:
 
 
   // Number of consecutive and equal reports that do no match the current state.
-  uint8 consecutive_pending_reports_count_;
+  uint8_t consecutive_pending_reports_count_;
 
   // Valid only if consecutive_pending_reports_count_ > 0;  Holds the value of the
   // pending reports.

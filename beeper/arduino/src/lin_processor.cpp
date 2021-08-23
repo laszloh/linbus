@@ -24,7 +24,7 @@
 // ----- Baud rate related parameters. ---
 
 // If an out of range speed is specified, using this one.
-static const uint16 kDefaultBaud = 9600;
+static const uint16_t kDefaultBaud = 9600;
 
 // Wait at most N bits from the end of the stop bit of previous byte
 // to the start bit of next byte.
@@ -32,19 +32,19 @@ static const uint16 kDefaultBaud = 9600;
 // TODO: seperate values for pre response space (longer, e.g. 8) and pre
 // regular byte space (shorter, e.g. 4).
 //
-static const uint8 kMaxSpaceBits = 6;
+static const uint8_t kMaxSpaceBits = 6;
 
 // Define an input pin with fast access. Using the macro does
 // not increase the pin access time compared to direct bit manipulation.
 // Pin is setup with active pullup.
 #define DEFINE_INPUT_PIN(name, port_letter, bit_index) \
   namespace name { \
-    static const uint8 kPinMask  = H(bit_index); \
+    static const uint8_t kPinMask  = H(bit_index); \
     static inline void setup() { \
       DDR ## port_letter &= ~kPinMask;  \
       PORT ## port_letter |= kPinMask;  \
     } \
-    static inline uint8 isHigh() { \
+    static inline uint8_t isHigh() { \
       return  PIN##port_letter & kPinMask; \
     } \
   } 
@@ -53,7 +53,7 @@ static const uint8 kMaxSpaceBits = 6;
 // not increase the pin access time compared to direct bit manipulation.
 #define DEFINE_OUTPUT_PIN(name, port_letter, bit_index, initial_value) \
   namespace name { \
-    static const uint8 kPinMask  = H(bit_index); \
+    static const uint8_t kPinMask  = H(bit_index); \
     static inline void setHigh() { \
       PORT ## port_letter |= kPinMask; \
     } \
@@ -77,14 +77,14 @@ namespace lin_processor {
     // Initialized to given baud rate. 
     void setup() {
       // If baud rate out of range use default speed.
-      uint16 baud = custom_defs::kLinSpeed; 
+      uint16_t baud = custom_defs::kLinSpeed; 
       if (baud < 1000 || baud > 20000) {
         sio::println(F("ERROR: kLinSpeed out of range"));
         baud = kDefaultBaud;
       }
       baud_ = baud; 
       prescaler_x64_ = baud < 8000;
-      const uint8 prescaling = prescaler_x64_ ? 64 : 8;  
+      const uint8_t prescaling = prescaler_x64_ ? 64 : 8;  
       counts_per_bit_ = (((16000000L / prescaling) / baud));
       // Adding two counts to compensate for software delay.
       counts_per_half_bit_ = (counts_per_bit_ / 2) + 2;
@@ -93,7 +93,7 @@ namespace lin_processor {
       clock_ticks_per_until_start_bit_ = clock_ticks_per_bit_ * kMaxSpaceBits;
     }
 
-    inline uint16 baud() const { 
+    inline uint16_t baud() const { 
       return baud_; 
     }
 
@@ -101,32 +101,32 @@ namespace lin_processor {
       return prescaler_x64_;
     }
 
-    inline uint8 counts_per_bit() const { 
+    inline uint8_t counts_per_bit() const { 
       return counts_per_bit_; 
     }
-    inline uint8 counts_per_half_bit() const { 
+    inline uint8_t counts_per_half_bit() const { 
       return counts_per_half_bit_; 
     }
-    inline uint8 clock_ticks_per_bit() const { 
+    inline uint8_t clock_ticks_per_bit() const { 
       return clock_ticks_per_bit_; 
     }
-    inline uint8 clock_ticks_per_half_bit() const { 
+    inline uint8_t clock_ticks_per_half_bit() const { 
       return clock_ticks_per_half_bit_; 
     }
-    inline uint8 clock_ticks_per_until_start_bit() const { 
+    inline uint8_t clock_ticks_per_until_start_bit() const { 
       return clock_ticks_per_until_start_bit_; 
     }
    private:
-    uint16 baud_;
+    uint16_t baud_;
     // False -> x8, true -> x64.
     // TODO: timer2 also have x32 scalingl Could use it for better 
     // accuracy in the mid baude range.
     boolean prescaler_x64_;
-    uint8 counts_per_bit_;
-    uint8 counts_per_half_bit_;
-    uint8 clock_ticks_per_bit_;
-    uint8 clock_ticks_per_half_bit_;
-    uint8 clock_ticks_per_until_start_bit_;
+    uint8_t counts_per_bit_;
+    uint8_t counts_per_half_bit_;
+    uint8_t clock_ticks_per_bit_;
+    uint8_t clock_ticks_per_half_bit_;
+    uint8_t clock_ticks_per_until_start_bit_;
   };
 
   // The actual configurtion. Initialized in setup() based on baud rate.  
@@ -162,19 +162,19 @@ namespace lin_processor {
   // ----- ISR RX Ring Buffers -----
 
   // Frame buffer queue size.
-  static const uint8 kMaxFrameBuffers = 8;
+  static const uint8_t kMaxFrameBuffers = 8;
 
   // RX Frame buffers queue. Read/Writen by ISR only. 
   static LinFrame rx_frame_buffers[kMaxFrameBuffers];
 
   // Index [0, kMaxFrameBuffers) of the current frame buffer being
   // written (newest). Read/Written by ISR only.
-  static uint8  head_frame_buffer;
+  static uint8_t  head_frame_buffer;
 
   // Index [0, kMaxFrameBuffers) of the next frame to be read (oldest).
   // If equals head_frame_buffer then there is no available frame.
   // Read/Written by ISR only.
-  static uint8 tail_frame_buffer;
+  static uint8_t tail_frame_buffer;
 
   // Called once from main.
   static inline void setupBuffers() {
@@ -202,11 +202,11 @@ namespace lin_processor {
   // Increment by the ISR to indicates to the main program when the ISR returned.
   // This is used to defered disabling interrupts until the ISR completes to 
   // reduce ISR jitter time.
-  static volatile uint8 isr_marker;
+  static volatile uint8_t isr_marker;
   
   // Should be called from main only. 
   static inline void waitForIsrEnd() {
-    const uint8 value = isr_marker;
+    const uint8_t value = isr_marker;
     // Wait until the next ISR ends.
     while (value == isr_marker) {
     } 
@@ -233,10 +233,10 @@ namespace lin_processor {
 
   // Like enum but 8 bits only.
   namespace states {
-    static const uint8 DETECT_BREAK = 1;
-    static const uint8 READ_DATA = 2;
+    static const uint8_t DETECT_BREAK = 1;
+    static const uint8_t READ_DATA = 2;
   }
-  static uint8 state;
+  static uint8_t state;
 
   class StateDetectBreak {
    public:
@@ -244,7 +244,7 @@ namespace lin_processor {
     static inline void handleIsr();
     
    private:
-    static uint8 low_bits_counter_;
+    static uint8_t low_bits_counter_;
   };
 
   class StateReadData {
@@ -256,19 +256,19 @@ namespace lin_processor {
    private:
     // Number of complete bytes read so far. Includes all bytes, even
     // sync, id and checksum.
-    static uint8 bytes_read_;
+    static uint8_t bytes_read_;
     
     // Number of bits read so far in the current byte. Includes start bit, 
     // 8 data bits and one stop bits.
-    static uint8 bits_read_in_byte_;
+    static uint8_t bits_read_in_byte_;
 
     // Buffer for the current byte we collect.
-    static uint8 byte_buffer_;
+    static uint8_t byte_buffer_;
    
     // When collecting the data bits, this goes (1 << 0) to (1 << 7). Could
     // be computed as (1 << (bits_read_in_byte_ - 1)). We use this cached value
     // recude ISR computation.
-    static uint8 byte_buffer_bit_mask_;
+    static uint8_t byte_buffer_bit_mask_;
   };
 
   // ----- Error Flag. -----
@@ -277,7 +277,7 @@ namespace lin_processor {
   static volatile boolean error_flags;
 
   // Private. Called from ISR and from setup (beofe starting the ISR).
-  static inline void setErrorFlags(uint8 flags) {
+  static inline void setErrorFlags(uint8_t flags) {
     error_pin::setHigh();
     // Non atomic when called from setup() but should be fine since ISR is not running yet.
     error_flags |= flags;
@@ -297,7 +297,7 @@ namespace lin_processor {
   }
 
   struct BitName {
-    const uint8 mask;
+    const uint8_t mask;
     const char* const name;  
   };
 
@@ -313,11 +313,11 @@ namespace lin_processor {
 
   // Given a byte with lin processor error bitset, print the list
   // of set errors.
-  void printErrorFlags(uint8 lin_errors) {
-    const uint8 n = ARRAY_SIZE(kErrorBitNames); 
+  void printErrorFlags(uint8_t lin_errors) {
+    const uint8_t n = ARRAY_SIZE(kErrorBitNames); 
     boolean any_printed = false;
-    for (uint8 i = 0; i < n; i++) {
-      const uint8 mask = pgm_read_byte(&kErrorBitNames[i].mask);
+    for (uint8_t i = 0; i < n; i++) {
+      const uint8_t mask = pgm_read_byte(&kErrorBitNames[i].mask);
       if (lin_errors & mask) {
         if (any_printed) {
           sio::printchar(' ');
@@ -336,7 +336,7 @@ namespace lin_processor {
     DDRD |= H(DDD3);
     // Fast PWM mode, OC2B output active high.
     TCCR2A = L(COM2A1) | L(COM2A0) | H(COM2B1) | H(COM2B0) | H(WGM21) | H(WGM20);
-    const uint8 prescaler = config.prescaler_x64()
+    const uint8_t prescaler = config.prescaler_x64()
       ? (H(CS22) | L(CS21) | L(CS20))   // x64
         : (L(CS22) | H(CS21) | L(CS20));  // x8
     // Prescaler: X8. Should match the definition of kPreScaler;
@@ -400,8 +400,8 @@ namespace lin_processor {
   // of clock ticks passed (timeout). Retuns true if ok,
   // false if timeout. Keeps timer reset during the wait.
   // Called from ISR only.
-  static inline boolean waitForRxLow(uint16 max_clock_ticks) {
-    const uint16 base_clock = hardware_clock::ticksForIsr();
+  static inline boolean waitForRxLow(uint16_t max_clock_ticks) {
+    const uint16_t base_clock = hardware_clock::ticksForIsr();
     for(;;) {
       // Keep the tick timer not ticking (no ISR).
       resetTickTimer();
@@ -413,7 +413,7 @@ namespace lin_processor {
 
       // Test for timeout.
       // Should work also in case of 16 bit clock overflow.
-      const uint16 clock_diff = hardware_clock::ticksForIsr() - base_clock;
+      const uint16_t clock_diff = hardware_clock::ticksForIsr() - base_clock;
       if (clock_diff >= max_clock_ticks) {
         return false; 
       }
@@ -423,15 +423,15 @@ namespace lin_processor {
   // Same as waitForRxLow but with reversed polarity.
   // We clone to code for time optimization.
   // Called from ISR only.
-  static inline boolean waitForRxHigh(uint16 max_clock_ticks) {
-    const uint16 base_clock = hardware_clock::ticksForIsr();
+  static inline boolean waitForRxHigh(uint16_t max_clock_ticks) {
+    const uint16_t base_clock = hardware_clock::ticksForIsr();
     for(;;) {
       resetTickTimer();
       if (rx_pin::isHigh()) {
         return true;
       }
       // Should work also in case of an clock overflow.
-      const uint16 clock_diff = hardware_clock::ticksForIsr() - base_clock;
+      const uint16_t clock_diff = hardware_clock::ticksForIsr() - base_clock;
       if (clock_diff >= max_clock_ticks) {
         return false; 
       }
@@ -440,7 +440,7 @@ namespace lin_processor {
 
   // ----- Detect-Break State Implementation -----
 
-  uint8 StateDetectBreak::low_bits_counter_;
+  uint8_t StateDetectBreak::low_bits_counter_;
 
   inline void StateDetectBreak::enter() {
     state = states::DETECT_BREAK;
@@ -473,10 +473,10 @@ namespace lin_processor {
 
   // ----- Read-Data State Implementation -----
 
-  uint8 StateReadData::bytes_read_;
-  uint8 StateReadData::bits_read_in_byte_;
-  uint8 StateReadData::byte_buffer_;
-  uint8 StateReadData::byte_buffer_bit_mask_;
+  uint8_t StateReadData::bytes_read_;
+  uint8_t StateReadData::bits_read_in_byte_;
+  uint8_t StateReadData::byte_buffer_;
+  uint8_t StateReadData::byte_buffer_bit_mask_;
 
   // Called on the low to high transition at the end of the break.
   inline void StateReadData::enter() {
@@ -494,7 +494,7 @@ namespace lin_processor {
   inline void StateReadData::handleIsr() {
     // Sample data bit ASAP to avoid jitter.
     sample_pin::setHigh();
-    const uint8 is_rx_high = rx_pin::isHigh();
+    const uint8_t is_rx_high = rx_pin::isHigh();
     sample_pin::setLow();
     
     // Handle start bit.
