@@ -16,7 +16,6 @@
 #include "custom_signals.h"
 #include "action_buzzer.h"
 #include "action_led.h"
-#include "sio.h"
 
 namespace custom_module {
   

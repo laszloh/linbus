@@ -17,7 +17,6 @@
 #include "hardware_clock.h"
 #include "io_pins.h"
 #include "lin_processor.h"
-#include "sio.h"
 #include "system_clock.h"
 
 // ERRORS LED - blinks when detecting errors.
@@ -28,7 +27,7 @@ void setup()
 {
   // Hard coded to 115.2k baud. Uses URART0, no interrupts.
   // Initialize this first since some setup methods uses it.
-  sio::setup();
+  Serial.begin(115200);
 
   // Uses Timer1, no interrupts.
   hardware_clock::setup();
@@ -53,14 +52,13 @@ void loop()
   for(;;) {    
     // Periodic updates.
     system_clock::loop();    
-    sio::loop();
     errors_activity_led.loop();  
     custom_module::loop();
 
     // Print a periodic text messages if no activiy.
     static PassiveTimer idle_timer;
     if (idle_timer.timeMillis() >= 5000) {
-      sio::println(F("waiting..."));
+      Serial.println(F("waiting..."));
       idle_timer.restart();
     }
 
@@ -81,9 +79,9 @@ void loop()
       // If pending errors and time to print then print and clear.
       pending_lin_errors |= new_lin_errors;
       if (pending_lin_errors && lin_errors_timeout.timeMillis() > 1000) {
-        sio::print(F("LIN errors: "));
+        Serial.println(F("LIN errors: "));
         lin_processor::printErrorFlags(pending_lin_errors);
-        sio::println();
+        Serial.println();
         lin_errors_timeout.restart();
         pending_lin_errors = 0;
       }
@@ -102,14 +100,14 @@ void loop()
       // Print frame to serial port.
       for (int i = 0; i < frame.num_bytes(); i++) {
         if (i > 0) {
-          sio::printchar(' ');  
+          Serial.print(' ');  
         }
-        sio::printhex2(frame.get_byte(i));  
+        Serial.print(frame.get_byte(i), 16);
       }
       if (!frameOk) {
-        sio::print(F(" ERR"));
+        Serial.print(F(" ERR"));
       }
-      sio::println();  
+      Serial.println();  
       // Supress the 'waiting' messages.
       idle_timer.restart(); 
     

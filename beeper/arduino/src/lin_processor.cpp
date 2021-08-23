@@ -14,14 +14,9 @@
 
 #include "lin_processor.h"
 
-#include <interrupt.hpp>
-
 #include "avr_util.h"
 #include "custom_defs.h"
 #include "hardware_clock.h"
-
-// TODO: for debugging. Remove.
-#include "sio.h"
 
 // ----- Baud rate related parameters. ---
 
@@ -71,7 +66,7 @@ static const uint8_t kMaxSpaceBits = 6;
 
 namespace lin_processor {
 
-  class Config {
+  class Config : public Printable {
    public:
 #if F_CPU != 16000000
 #error "The existing code assumes 16Mhz CPU clk."
@@ -81,7 +76,7 @@ namespace lin_processor {
       // If baud rate out of range use default speed.
       uint16_t baud = custom_defs::kLinSpeed; 
       if (baud < 1000 || baud > 20000) {
-        sio::println(F("ERROR: kLinSpeed out of range"));
+        Serial.println(F("ERROR: kLinSpeed out of range"));
         baud = kDefaultBaud;
       }
       baud_ = baud; 
@@ -117,6 +112,16 @@ namespace lin_processor {
     }
     inline uint8_t clock_ticks_per_until_start_bit() const { 
       return clock_ticks_per_until_start_bit_; 
+    }
+
+    virtual size_t printTo(Print& p) const final {
+      char buffer [128];
+      snprintf_P(buffer, sizeof(buffer), PSTR("LIN: %u, %u, %u, %u, %u, %u, %u, %u, "), baud_,
+                  custom_defs::kUseLinChecksumVersion2, prescaler_x64_, counts_per_bit_,
+                  counts_per_half_bit_, clock_ticks_per_bit_, clock_ticks_per_bit_,
+                  clock_ticks_per_half_bit_, clock_ticks_per_until_start_bit_);
+
+      return p.println(buffer);
     }
    private:
     uint16_t baud_;
@@ -320,10 +325,10 @@ namespace lin_processor {
       const uint8_t mask = pgm_read_byte(&kErrorBitNames[i].mask);
       if (lin_errors & mask) {
         if (any_printed) {
-          sio::printchar(' ');
+          Serial.print(' ');
         }
         const char* const name = (const char*)pgm_read_word(&kErrorBitNames[i].name);
-        sio::print(name);
+        Serial.print(name);
         any_printed = true;
       }
     }
@@ -365,17 +370,8 @@ namespace lin_processor {
     setupTimer();
     error_flags = 0;
 
-    sio::waitUntilFlushed();
     // TODO: move this to config class.
-    sio::printf(F("LIN: %u, %u, %u, %u, %u, %u, %u, %u\n"), 
-        config.baud(), 
-        custom_defs::kUseLinChecksumVersion2,
-        config.prescaler_x64(),
-        config.counts_per_bit(), 
-        config.counts_per_half_bit(), 
-        config.clock_ticks_per_bit(),  
-        config.clock_ticks_per_half_bit(),  
-        config.clock_ticks_per_until_start_bit());
+    Serial.println(config);
   }
 
   // ----- ISR Utility Functions -----

@@ -14,7 +14,6 @@
 #define IO_PINS_H
 
 #include "avr_util.h"
-#include <interrupt.hpp>
 
 namespace io_pins {
   // A class to abstract an output pin that is not necesarily an arduino 
