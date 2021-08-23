@@ -13,7 +13,6 @@
 #ifndef SIGNAL_TRACKER_H
 #define SIGNAL_TRACKER_H
 
-#include "system_clock.h"
 #include "passive_timer.h"
 
 // A class for trackign and conditioning boolean signal reports extracted from

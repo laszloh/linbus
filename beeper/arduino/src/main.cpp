@@ -17,7 +17,6 @@
 #include "hardware_clock.h"
 #include "io_pins.h"
 #include "lin_processor.h"
-#include "system_clock.h"
 
 // ERRORS LED - blinks when detecting errors.
 static ActionLed<io_pins::PORTB_ADDR, 1> errors_activity_led;
@@ -50,8 +49,7 @@ void loop()
   // Having our own loop shaves about 4 usec per iteration. It also eliminate
   // any underlying functionality that we may not want.
   for(;;) {    
-    // Periodic updates.
-    system_clock::loop();    
+    // Periodic updates.   
     errors_activity_led.loop();  
     custom_module::loop();
 
