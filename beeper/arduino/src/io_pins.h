@@ -21,83 +21,75 @@ namespace io_pins {
   //
   // Assumes that interrupts are enabled and thus should not be called
   // from ISRs.
-  class OutputPin {
-   public:
-    // port is either PORTB, PORTC, or PORTD.
-    // bit index is one of [7, 6, 5, 4, 3, 2, 1, 0] (lsb).
-    // NOTE: ddr port is is always one address below portx.
-    // NOTE: pin port is is always two addresses below portx.
-    OutputPin(volatile uint8_t& port, uint8_t bitIndex) :
-    port_(port),
-    pin_(*((&port)-2)),
-    bit_mask_(1 << bitIndex) {
-      // NOTE: ddr port is is always one address below port.
-      volatile uint8_t& ddr = *((&port)-1);
-      ddr |= bit_mask_;
-      low();  // default state.
-    } 
 
-    inline void high() {
-      // Wrapping in cli/sei in case any pin of this port is changed
-      // from an ISR. Keeping this as short as possible to avoid jitter
-      // in the ISR invocation.
-      InterruptLock lock();
-      port_ |= bit_mask_;
-    }
-
-    inline void low() {
-      // Wrapping in cli/sei in case any pin of this port is changed
-      // from an ISR. Keeping this as short as possible to avoid jitter
-      // in the ISR invocation.
-      InterruptLock lock();
-      port_ &= ~bit_mask_;
-    }
-
-    inline void set(boolean v) {
-      if (v) {
-        high();
-      } 
-      else {
-        low();
-      }
-    }
-
-    inline void toggle() {
-      set(!isHigh());
-    }
-
-    inline boolean isHigh() {
-      return pin_ & bit_mask_;
-    }
-
-   private:
-    volatile uint8_t& port_;
-    volatile uint8_t& pin_;
-    const uint8_t bit_mask_;
-  };
-
-  // A class to abstract an input pin that is not necesarily an arduino 
-  // digital pin. Also optimized for quick access.
+  template<uint8_t port_addr, int pin_nr, bool pullUp>
   class InputPin {
-   public:
-    // See OutputPin() for description of the args.
-    InputPin(volatile uint8_t& port, uint8_t bitIndex) 
-   : 
-      pin_(*((&port)-2)),
-      bit_mask_(1 << bitIndex) { 
-        volatile uint8_t& ddr = *((&port)-1);
-        ddr &= ~bit_mask_;  // input
-        port |= bit_mask_;  // pullup
-      } 
+    protected:
+      struct PORT_t {
+        uint8_t port;
+        uint8_t ddr;
+        uint8_t pin;
+      };
 
-    inline boolean isHigh() {
-      return pin_ & bit_mask_;
-    }
+      PORT_t *p = reinterpret_cast<PORT_t *>(port_addr);
 
-   private:
-    volatile uint8_t& pin_;
-    const uint8_t bit_mask_;
+    public:
+      void setup() {
+        p->ddr &= ~_BV(pin_nr);
+        if(pullUp) {
+          p->port |= _BV(pin_nr);
+        } else {
+          p->port &= ~_BV(pin_nr);
+        }
+      }
+
+      bool isHigh() {
+        return p->pin & _BV(pin_nr);
+      }
   };
+
+  template<uint8_t port_addr, uint8_t pin_nr, bool inital>
+  class OutputPin {
+    protected:
+      struct PORT_t {
+        uint8_t port;
+        uint8_t ddr;
+        uint8_t pin;
+      };
+
+      PORT_t *p = reinterpret_cast<PORT_t *>(port_addr);
+
+    public:
+      void setup(){
+        p->ddr |= _BV(pin_nr);
+        set(inital);
+      }
+
+      void low() {
+        avr::interrupt::atomic<> lock;
+        p->port &=~_BV(pin_nr);
+      }
+
+      void high() {
+        avr::interrupt::atomic<> lock;
+        p->port |= _BV(pin_nr);
+      }
+
+      void set(bool level) {
+        if(level)
+          high();
+        else
+          low();
+      }
+
+      void toggle(){
+        p->pin |= _BV(pin_nr);
+      }
+  };
+
+  static const int PORTB_ADDR = (int) &PINB;
+  static const int PORTC_ADDR = (int) &PINC;
+  static const int PORTD_ADDR = (int) &PIND;
   
 }  // namespace io_pins
 

@@ -20,11 +20,13 @@
 // Wrapes an OutputPin with logic to blick an LED while some events occur. Design
 // to be visible regardless of the event frequency and duration.
 // Requires loop() calls from main loop().
+template<uint8_t port_addr, uint8_t pin_nr>
 class ActionLed {
 public:
-  ActionLed(volatile uint8_t& port, uint8_t bitIndex) 
-    : led_(port, bitIndex),
+  ActionLed():
+      led_(),
       pending_actions_(false) {
+    led_.setup();
     enterIdleState();
   }
   
@@ -67,7 +69,7 @@ private:
    uint8_t state_; 
   
   // The underlying pin of the led. Active high.
-  io_pins::OutputPin led_;
+  io_pins::OutputPin<port_addr, pin_nr, false> led_;
   
   // A timer for the ACtIVE_ON and ACTIVE_OFF periods.
   PassiveTimer timer_;

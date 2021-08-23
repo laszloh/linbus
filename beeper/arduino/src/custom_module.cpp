@@ -20,7 +20,7 @@
 namespace custom_module {
   
 // FRAMES LED - blinks when detecting valid frames.
-static ActionLed frame_activity_led(PORTB, 0);
+static ActionLed<io_pins::PORTB_ADDR, 0> frame_activity_led;
   
 // Used to generate slow blinking to show the board is live, even when
 // there are no frames.

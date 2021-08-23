@@ -31,39 +31,6 @@ static const uint16_t kDefaultBaud = 9600;
 //
 static const uint8_t kMaxSpaceBits = 6;
 
-// Define an input pin with fast access. Using the macro does
-// not increase the pin access time compared to direct bit manipulation.
-// Pin is setup with active pullup.
-#define DEFINE_INPUT_PIN(name, port_letter, bit_index) \
-  namespace name { \
-    static const uint8_t kPinMask  = H(bit_index); \
-    static inline void setup() { \
-      DDR ## port_letter &= ~kPinMask;  \
-      PORT ## port_letter |= kPinMask;  \
-    } \
-    static inline uint8_t isHigh() { \
-      return  PIN##port_letter & kPinMask; \
-    } \
-  } 
- 
-// Define an output pin with fast access. Using the macro does
-// not increase the pin access time compared to direct bit manipulation.
-#define DEFINE_OUTPUT_PIN(name, port_letter, bit_index, initial_value) \
-  namespace name { \
-    static const uint8_t kPinMask  = H(bit_index); \
-    static inline void setHigh() { \
-      PORT ## port_letter |= kPinMask; \
-    } \
-    static inline void setLow() { \
-      PORT ## port_letter &= ~kPinMask; \
-    } \
-    static inline void setup() { \
-      DDR ## port_letter |= kPinMask;  \
-      (initial_value) ? setHigh() : setLow(); \
-    } \
-  }  
-  
-
 namespace lin_processor {
 
   class Config : public Printable {
@@ -145,25 +112,25 @@ namespace lin_processor {
   // This way we shave a few cycles from the ISR.
     
   // LIN interface.
-  DEFINE_INPUT_PIN(rx_pin, D, 2);
+  io_pins::InputPin<io_pins::PORTD_ADDR, 2, true> rx_pin;
   // TODO: tie this pin to the TX pin of the ata6631 ic, for future applications.
-  DEFINE_OUTPUT_PIN(tx1_pin, C, 2, 1);
+  io_pins::OutputPin<io_pins::PORTC_ADDR, 2, true> tx1_pin;
   
   // Debugging signals.
-  DEFINE_OUTPUT_PIN(break_pin, C, 0, 0);
-  DEFINE_OUTPUT_PIN(sample_pin, B, 4, 0);
-  DEFINE_OUTPUT_PIN(error_pin, B, 3, 0);
-  DEFINE_OUTPUT_PIN(isr_pin, C, 3, 0);
-  DEFINE_OUTPUT_PIN(gp_pin, D, 6, 0);
+  io_pins::OutputPin<io_pins::PORTC_ADDR, 0, false> break_pin;
+  io_pins::OutputPin<io_pins::PORTB_ADDR, 4, false> sample_pin;
+  io_pins::OutputPin<io_pins::PORTB_ADDR, 3, false> error_pin;
+  io_pins::OutputPin<io_pins::PORTC_ADDR, 3, false> isr_pin;
+  io_pins::OutputPin<io_pins::PORTD_ADDR, 6, false> gp_pin;
 
   // Called one during initialization.
   static inline void setupPins() {
-    rx_pin::setup();
-    break_pin::setup();
-    sample_pin::setup();
-    error_pin::setup();
-    isr_pin::setup();
-    gp_pin::setup();
+    rx_pin.setup();
+    break_pin.setup();
+    sample_pin.setup();
+    error_pin.setup();
+    isr_pin.setup();
+    gp_pin.setup();
   }
 
   // ----- ISR RX Ring Buffers -----
@@ -223,14 +190,16 @@ namespace lin_processor {
   boolean readNextFrame(LinFrame* buffer) {
     boolean result = false;
     waitForIsrEnd();
-    InterruptLock lock();
-    if (tail_frame_buffer != head_frame_buffer) {
-      //led::setHigh();
-      // This copies the request buffer struct.
-      *buffer = rx_frame_buffers[tail_frame_buffer];
-      incrementTailFrameBuffer();
-      result = true;
-      //led::setLow();
+    {
+      avr::interrupt::atomic<> lock;
+      if (tail_frame_buffer != head_frame_buffer) {
+        //led::setHigh();
+        // This copies the request buffer struct.
+        *buffer = rx_frame_buffers[tail_frame_buffer];
+        incrementTailFrameBuffer();
+        result = true;
+        //led::setLow();
+      }
     }
     return result; 
   }
@@ -284,10 +253,10 @@ namespace lin_processor {
 
   // Private. Called from ISR and from setup (beofe starting the ISR).
   static inline void setErrorFlags(uint8_t flags) {
-    error_pin::setHigh();
+    error_pin.high();
     // Non atomic when called from setup() but should be fine since ISR is not running yet.
     error_flags |= flags;
-    error_pin::setLow();
+    error_pin.low();
   }
 
   // Called from main. Public. Assumed interrupts are enabled. 
@@ -295,7 +264,7 @@ namespace lin_processor {
   boolean getAndClearErrorFlags() {
     // Disabling interrupts for a brief for atomicity. Need to pay attention to
     // ISR jitter due to disabled interrupts.
-    InterruptLock lock();
+    avr::interrupt::atomic<> lock;
     const boolean result = error_flags;
     error_flags = 0;
     return result;
@@ -403,7 +372,7 @@ namespace lin_processor {
       resetTickTimer();
 
       // If rx is low we are done.
-      if (!rx_pin::isHigh()) {
+      if (!rx_pin.isHigh()) {
         return true;
       }
 
@@ -423,7 +392,7 @@ namespace lin_processor {
     const uint16_t base_clock = hardware_clock::ticksForIsr();
     for(;;) {
       resetTickTimer();
-      if (rx_pin::isHigh()) {
+      if (rx_pin.isHigh()) {
         return true;
       }
       // Should work also in case of an clock overflow.
@@ -445,7 +414,7 @@ namespace lin_processor {
 
   // Return true if enough time to service rx request.
   inline void StateDetectBreak::handleIsr() {
-    if (rx_pin::isHigh()) {
+    if (rx_pin.isHigh()) {
       low_bits_counter_ = 0;
       return;
     } 
@@ -457,11 +426,11 @@ namespace lin_processor {
     }
 
     // Detected a break. Wait for rx high and enter data reading.
-    break_pin::setHigh();
+    break_pin.high();
 
     // TODO: set actual max count
     waitForRxHigh(255);
-    break_pin::setLow();
+    break_pin.low();
    
     // Go process the data
     StateReadData::enter();
@@ -489,9 +458,9 @@ namespace lin_processor {
 
   inline void StateReadData::handleIsr() {
     // Sample data bit ASAP to avoid jitter.
-    sample_pin::setHigh();
-    const uint8_t is_rx_high = rx_pin::isHigh();
-    sample_pin::setLow();
+    sample_pin.high();
+    const uint8_t is_rx_high = rx_pin.isHigh();
+    sample_pin.low();
     
     // Handle start bit.
     if (bits_read_in_byte_ == 0) {
@@ -598,7 +567,7 @@ namespace lin_processor {
   // Interrupt on Timer 2 A-match.
   ISR(TIMER2_COMPA_vect)
   {
-    isr_pin::setHigh();
+    isr_pin.high();
     // TODO: make this state a boolean instead of enum? (efficency).
     switch (state) {
     case states::DETECT_BREAK:
@@ -617,7 +586,7 @@ namespace lin_processor {
     // jitter.
     isr_marker++;
     
-    isr_pin::setLow();
+    isr_pin.low();
   }
 }  // namespace lin_processor
 

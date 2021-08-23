@@ -32,7 +32,7 @@ namespace hardware_clock {
     // We disable interrupt to avoid corruption of the AVR temp byte buffer
     // that is used to read 16 bit values.
     // TODO: can we avoid disabling interrupts (motivation: improve LIN ISR jitter).
-    InterruptLock lock();
+    avr::interrupt::atomic<> lock;
     const uint16_t result TCNT1;
     return result;
   }

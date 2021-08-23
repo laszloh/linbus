@@ -20,7 +20,7 @@
 #include "system_clock.h"
 
 // ERRORS LED - blinks when detecting errors.
-static ActionLed errors_activity_led(PORTB, 1);
+static ActionLed<io_pins::PORTB_ADDR, 1> errors_activity_led;
 
 // Arduino setup function. Called once during initialization.
 void setup()
@@ -39,7 +39,7 @@ void setup()
 
   // Enable global interrupts. We expect to have only timer1 interrupts by
   // the lin decoder to reduce ISR jitter.
-  InterruptLock::on(); 
+  avr::interrupt::sei();
 }
 
 // Arduino loop() method. Called after setup(). Never returns.
