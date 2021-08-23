@@ -14,6 +14,7 @@
 #define AVR_UTIL_H
 
 #include <arduino.h>
+#include <interrupt.hpp>
 
 // Bit index to bit mask.
 // AVR registers bit indices are defined in iom328p.h.

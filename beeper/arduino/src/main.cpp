@@ -40,7 +40,7 @@ void setup()
 
   // Enable global interrupts. We expect to have only timer1 interrupts by
   // the lin decoder to reduce ISR jitter.
-  sei(); 
+  InterruptLock::on(); 
 }
 
 // Arduino loop() method. Called after setup(). Never returns.

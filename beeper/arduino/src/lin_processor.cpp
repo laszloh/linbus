@@ -14,6 +14,8 @@
 
 #include "lin_processor.h"
 
+#include <interrupt.hpp>
+
 #include "avr_util.h"
 #include "custom_defs.h"
 #include "hardware_clock.h"
@@ -216,7 +218,7 @@ namespace lin_processor {
   boolean readNextFrame(LinFrame* buffer) {
     boolean result = false;
     waitForIsrEnd();
-    cli();
+    InterruptLock lock();
     if (tail_frame_buffer != head_frame_buffer) {
       //led::setHigh();
       // This copies the request buffer struct.
@@ -225,7 +227,6 @@ namespace lin_processor {
       result = true;
       //led::setLow();
     }
-    sei();
     return result; 
   }
 
@@ -289,10 +290,9 @@ namespace lin_processor {
   boolean getAndClearErrorFlags() {
     // Disabling interrupts for a brief for atomicity. Need to pay attention to
     // ISR jitter due to disabled interrupts.
-    cli();
+    InterruptLock lock();
     const boolean result = error_flags;
     error_flags = 0;
-    sei();
     return result;
   }
 

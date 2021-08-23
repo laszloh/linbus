@@ -14,6 +14,7 @@
 #define IO_PINS_H
 
 #include "avr_util.h"
+#include <interrupt.hpp>
 
 namespace io_pins {
   // A class to abstract an output pin that is not necesarily an arduino 
@@ -41,18 +42,16 @@ namespace io_pins {
       // Wrapping in cli/sei in case any pin of this port is changed
       // from an ISR. Keeping this as short as possible to avoid jitter
       // in the ISR invocation.
-      cli();
+      InterruptLock lock();
       port_ |= bit_mask_;
-      sei();
     }
 
     inline void low() {
       // Wrapping in cli/sei in case any pin of this port is changed
       // from an ISR. Keeping this as short as possible to avoid jitter
       // in the ISR invocation.
-      cli();
+      InterruptLock lock();
       port_ &= ~bit_mask_;
-      sei();
     }
 
     inline void set(boolean v) {
