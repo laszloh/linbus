@@ -33,14 +33,20 @@ namespace lin_processor {
   extern boolean readNextFrame(LinFrame* buffer);
 
   // Errors byte masks for the individual error bits.
-  namespace errors {
-    static const uint8_t FRAME_TOO_SHORT = (1 << 0);
-    static const uint8_t FRAME_TOO_LONG = (1 << 1);
-    static const uint8_t START_BIT = (1 << 2);
-    static const uint8_t STOP_BIT = (1 << 3);
-    static const uint8_t SYNC_BYTE = (1 << 4);
-    static const uint8_t BUFFER_OVERRUN = (1 << 5);
-    static const uint8_t OTHER = (1 << 6);
+  enum class Errors : uint8_t {
+    NONE = 0,
+    FRAME_TOO_SHORT = _BV(0),
+    FRAME_TOO_LONG = _BV(1),
+    START_BIT = _BV(2),
+    STOP_BIT = _BV(3),
+    SYNC_BYTE = _BV(4),
+    BUFFER_OVERRUN = _BV(5),
+    BREAK_TOO_LONG = _BV(6),
+    OTHER = _BV(7),
+  };
+
+  inline bool operator|=(bool, Errors& e) {
+    return (e == Errors::NONE);
   }
 
   // Get current error flag and clear it. 
