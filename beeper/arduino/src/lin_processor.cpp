@@ -282,27 +282,21 @@ namespace lin_processor {
 
   // ----- Initialization -----
 
-  static void setupTimer() {    
-    // OC2B cycle pulse (Arduino digital pin 3, PD3). For debugging.
-    DDRD |= H(DDD3);
-    // Fast PWM mode, OC2B output active high.
-    TCCR2A = L(COM2A1) | L(COM2A0) | H(COM2B1) | H(COM2B0) | H(WGM21) | H(WGM20);
-    const uint8_t prescaler = config.prescaler_x64()
-      ? (H(CS22) | L(CS21) | L(CS20))   // x64
-        : (L(CS22) | H(CS21) | L(CS20));  // x8
-    // Prescaler: X8. Should match the definition of kPreScaler;
-    TCCR2B = L(FOC2A) | L(FOC2B) | H(WGM22) | prescaler;
-    // Clear counter.
-    TCNT2 = 0;
-    // Determines baud rate.
-    OCR2A = config.counts_per_bit() - 1;
-    // A short 8 clocks pulse on OC2B at the end of each cycle,
-    // just before triggering the ISR.
-    OCR2B = config.counts_per_bit() - 2; 
-    // Interrupt on A match.
-    TIMSK2 = L(OCIE2B) | H(OCIE2A) | L(TOIE2);
-    // Clear pending Compare A interrupts.
-    TIFR2 = L(OCF2B) | H(OCF2A) | L(TOV2);
+  // setup Timer2 for SW UART
+  static void setupTimer() {
+    // Mode #4 for Timer1 
+    // prescaler 1:1
+    // IC Noise Cancel 
+    // IC on Falling Edge 
+    TCCR1A = 0;
+    TCCR1B = _BV(WGM12) | _BV(CS10) | _BV(ICES1) | _BV(ICNC1);
+
+    // Determines baud rate
+    OCR1A = config.counts_per_bit() - 1;
+
+    // setup rx part
+    TIMSK1 |= _BV(ICIE1);
+    TIFR1 |= _BV(ICF1) | _BV(OCF1B);
   }
 
   // Call once from main at the begining of the program.
@@ -325,7 +319,7 @@ namespace lin_processor {
   // Set timer value to zero.
   static inline void resetTickTimer() {
     // TODO: also clear timer2 prescaler.
-    TCNT2 = 0;
+    TCNT1 = 0;
   }
 
   // Set timer value to half a tick. Called at the begining of the
@@ -335,7 +329,7 @@ namespace lin_processor {
     // Adding 2 to compensate for pre calling delay. The goal is
     // to have the next ISR data sampling at the middle of the start
     // bit.
-    TCNT2 = config.counts_per_half_bit();
+    TCNT1 = config.counts_per_half_bit();
   }
 
   // Perform a tight busy loop until RX is low or the given number
@@ -541,8 +535,22 @@ namespace lin_processor {
 
   // ----- ISR Handler -----
 
-  // Interrupt on Timer 2 A-match.
-  ISR(TIMER2_COMPA_vect)
+  ISR(TIMER1_CAPT_vect) {
+    uint16_t icr1  = ICR1;
+    uint16_t ocr1a = OCR1A;
+   
+    // Eine halbe Bitzeit zu ICR1 addieren (modulo OCR1A) und nach OCR1B
+    uint16_t ocr1b = icr1 + ocr1a/2;
+    if (ocr1b >= ocr1a)
+        ocr1b -= ocr1a;
+    OCR1B = ocr1b;
+   
+    TIFR1 = (1 << OCF1B);
+    TIMSK1 = (TIMSK1 & ~(1 << ICIE1)) | (1 << OCIE1B);
+  }
+
+  // Interrupt on Timer 1 A-match.
+  ISR(TIMER1_COMPB_vect)
   {
     isr_pin.high();
     // TODO: make this state a boolean instead of enum? (efficency).
