@@ -17,15 +17,18 @@
 // Compute the checksum of the frame. For now using LIN checksum V2 only.
 uint8_t LinFrame::computeChecksum() const {
   // diagnostic frames always use classic checksum
-  const bool diagnostic = ((bytes_[0] & 0x3f) == 0x3c || (bytes_[0] & 0x3f) == 0x3d) ? true : false;
+  const bool diagnostic
+      = ((bytes_[0] & 0x3f) == 0x3c || (bytes_[0] & 0x3f) == 0x3d) ? true : false;
   // LIN V2 checksum includes the ID byte, V1 does not.
-  const uint8_t startByteIndex = (custom_defs::kUseLinChecksumVersion2 || diagnostic) ? 0 : 1;
+  const uint8_t startByteIndex
+      = (custom_defs::kUseLinChecksumVersion2 || diagnostic) ? 0 : 1;
   const uint8_t* p = &bytes_[startByteIndex];
-  
+
   // Exclude the checksum byte at the end of the frame.
   uint8_t numBytesToChecksum = num_bytes_ - startByteIndex - 1;
 
-  // Sum bytes. We should not have 16 bit overflow here since the frame has a limited size.
+  // Sum bytes. We should not have 16 bit overflow here since the frame has a limited
+  // size.
   uint16_t sum = 0;
   while (numBytesToChecksum-- > 0) {
     sum += *(p++);
@@ -35,15 +38,14 @@ uint8_t LinFrame::computeChecksum() const {
   for (;;) {
     const uint8_t highByte = (uint8_t)(sum >> 8);
     if (!highByte) {
-      break;  
+      break;
     }
-    // NOTE: this can add additional carry.  
-    sum = (sum & 0xff) + highByte; 
+    // NOTE: this can add additional carry.
+    sum = (sum & 0xff) + highByte;
   }
 
   return (uint8_t)(~sum);
 }
-
 
 uint8_t LinFrame::setLinIdChecksumBits(uint8_t id) {
   // The algorithm is optimized for CPU time (avoiding individual shifts per id
@@ -83,7 +85,7 @@ boolean LinFrame::isValid() const {
 
   // Check frame size.
   // One ID byte with optional 1-8 data bytes and 1 checksum byte.
-  // TODO: should we enforce only 1, 2, 4, or 8 data bytes?  (total size 
+  // TODO: should we enforce only 1, 2, 4, or 8 data bytes?  (total size
   // 1, 3, 4, 6, or 10)
   //
   // TODO: should we pass through frames with ID only (n == 1, no response from slave).
@@ -101,9 +103,8 @@ boolean LinFrame::isValid() const {
   if (n > 1) {
     if (bytes_[n - 1] != computeChecksum()) {
       return false;
-    }  
+    }
   }
   // TODO: check protected id.
   return true;
 }
-

@@ -19,42 +19,45 @@
 // intercepted linbus frames.
 class SignalTracker {
 public:
-
   // Tracked signal states. Using uint8_t instead of enums which are int16.
   struct States {
     static const uint8_t UNKNOWN = 0;
     static const uint8_t OFF = 1;
     static const uint8_t ON = 2;
-   private:
+
+  private:
     // do not instantiate.
-    States() {
-    }  
+    States() { }
   };
 
   // Constctor and configuration.
-  // * Definition: Supporting report - a call to reportSignal with a value that matches the current state.
-  // * Definition: Pending report - a call to reportSignal with a value that does not match the current state. A sequence of 
-  // identical pending reports is required to change a state.
+  // * Definition: Supporting report - a call to reportSignal with a value that matches
+  // the current state.
+  // * Definition: Pending report - a call to reportSignal with a value that does not
+  // match the current state. A sequence of identical pending reports is required to
+  // change a state.
   //
-  // * required_pending_reports_count - number of equal consecutive pending reports required to change a state.
-  // * pending_report_ttl_millis - max time in millis between pending reports to consider consecutive.
-  // * supporting_report_ttl_millis - max time in millis from the last supporting report before changing state to UNKNOWN.
-  SignalTracker(uint8_t required_pending_reports_count, uint16_t pending_report_ttl_millis, uint16_t supporting_report_ttl_millis) 
-  :  
-    required_pending_reports_count_(required_pending_reports_count),
-    pending_report_ttl_millis_(pending_report_ttl_millis),
-    supporting_report_ttl_millis_(supporting_report_ttl_millis)
-    {
-      enterStateUnknown();
-    }
-
+  // * required_pending_reports_count - number of equal consecutive pending reports
+  // required to change a state.
+  // * pending_report_ttl_millis - max time in millis between pending reports to consider
+  // consecutive.
+  // * supporting_report_ttl_millis - max time in millis from the last supporting report
+  // before changing state to UNKNOWN.
+  SignalTracker(uint8_t required_pending_reports_count,
+      uint16_t pending_report_ttl_millis, uint16_t supporting_report_ttl_millis)
+      : required_pending_reports_count_(required_pending_reports_count)
+      , pending_report_ttl_millis_(pending_report_ttl_millis)
+      , supporting_report_ttl_millis_(supporting_report_ttl_millis) {
+    enterStateUnknown();
+  }
 
   // Called from the main loop() method.
   // May change the state to UNKNOWN.
   inline void loop() {
     // Check for state expiration due to lack of supporting reports.
-    if (state_ == States::UNKNOWN || 
-        time_since_last_supporting_report_.timeMillis() < supporting_report_ttl_millis_) {
+    if (state_ == States::UNKNOWN
+        || time_since_last_supporting_report_.timeMillis()
+            < supporting_report_ttl_millis_) {
       return;
     }
     // This also resets the pending reports.
@@ -70,28 +73,26 @@ public:
       return;
     }
 
-    // Here when the report contradicts the current state. That is, this is a 
+    // Here when the report contradicts the current state. That is, this is a
     // pending report.
 
     // Is this the first report in the sequence of pending reports or an addition
     // to an existing sequence with the same signal value.
-    const boolean isFirstConsecutiveReport = 
-      (consecutive_pending_reports_count_ == 0) || 
-      (consecutive_pending_reports_value_ != is_on) || 
-      (time_since_last_pending_report_.timeMillis() >= pending_report_ttl_millis_);
+    const boolean isFirstConsecutiveReport = (consecutive_pending_reports_count_ == 0)
+        || (consecutive_pending_reports_value_ != is_on)
+        || (time_since_last_pending_report_.timeMillis() >= pending_report_ttl_millis_);
 
     // Handle the case of first consecutive pending report with this value.
     if (isFirstConsecutiveReport) {
       consecutive_pending_reports_count_ = 1;
       consecutive_pending_reports_value_ = is_on;
-    } 
-    else {
-      // Handle the case of non first consecutive pending report. 
+    } else {
+      // Handle the case of non first consecutive pending report.
       // NOTE: should not overflow since we limit this to required_report_count.
       consecutive_pending_reports_count_++;
     }
 
-    time_since_last_pending_report_.restart();   
+    time_since_last_pending_report_.restart();
 
     // If insufficient number of consecutive pending reports to change state, do nothing.
     if (consecutive_pending_reports_count_ < required_pending_reports_count_) {
@@ -108,36 +109,26 @@ public:
   }
 
   // Retrieves the current state. Returns one of States values. Does not change state.
-  inline uint8_t state() const {
-    return state_;
-  }
-  
+  inline uint8_t state() const { return state_; }
+
   // Convinience method.
-  inline boolean isOn() const {
-    return state_ == States::ON;
-  }
-  
+  inline boolean isOn() const { return state_ == States::ON; }
+
   // Convinience method.
-  inline boolean isOff() const {
-    return state_ == States::OFF;
-  }
-  
+  inline boolean isOff() const { return state_ == States::OFF; }
+
   // Convinience method.
   inline boolean isOnForAtLeastMillis(uint32_t min_time_in_state) const {
-    return isOn() &&  (timeInStateMillis() >= min_time_in_state);
-  }
-  
-  // Convinience method.
-  inline boolean isKnown() const {
-    return state_ != States::UNKNOWN;
+    return isOn() && (timeInStateMillis() >= min_time_in_state);
   }
 
-  // Returns time in millis in current state. Since getState() does not change state, calling it
-  // after getState() will return the time for the state returns by getState().  (that is, no race
-  // condition.). 
-  inline uint32_t timeInStateMillis() const {
-    return time_in_state_.timeMillis();
-  }
+  // Convinience method.
+  inline boolean isKnown() const { return state_ != States::UNKNOWN; }
+
+  // Returns time in millis in current state. Since getState() does not change state,
+  // calling it after getState() will return the time for the state returns by getState().
+  // (that is, no race condition.).
+  inline uint32_t timeInStateMillis() const { return time_in_state_.timeMillis(); }
 
 private:
   const uint8_t required_pending_reports_count_;
@@ -154,7 +145,6 @@ private:
   // UNKNOWN state.
   PassiveTimer time_since_last_supporting_report_;
 
-
   // Number of consecutive and equal reports that do no match the current state.
   uint8_t consecutive_pending_reports_count_;
 
@@ -166,17 +156,17 @@ private:
   // last pending report.
   PassiveTimer time_since_last_pending_report_;
 
-  // Does the given value passed to reportSignal() matches the current state ('supporting report')
-  // or may influence a change to a different state ('pending report').
+  // Does the given value passed to reportSignal() matches the current state ('supporting
+  // report') or may influence a change to a different state ('pending report').
   inline boolean doesReportSupportCurrentState(boolean report_is_on) {
     switch (state_) {
-      case States::UNKNOWN:  
-        // No report matches the UNKNOWN state.
-        return false;
-      case States::ON: 
-        return report_is_on;
-      case States::OFF: 
-        return !report_is_on;
+    case States::UNKNOWN:
+      // No report matches the UNKNOWN state.
+      return false;
+    case States::ON:
+      return report_is_on;
+    case States::OFF:
+      return !report_is_on;
     }
     // TODO: unexpected state, surface this error somehow.
     return false;
@@ -190,4 +180,3 @@ private:
 };
 
 #endif
-

@@ -24,8 +24,8 @@
 // 3. Turn ignition off.
 // The entire sequence must be completed within 20 seconds, otherwise it is ignored.
 //
-// Like all the other custom_* files, this file should be adapted to the specific application.
-// The example provided is for a Reverse Gear beeper for the 981/Cayman.
+// Like all the other custom_* files, this file should be adapted to the specific
+// application. The example provided is for a Reverse Gear beeper for the 981/Cayman.
 namespace custom_config {
   namespace private_ {
     // True when beeper feature is enabled.
@@ -37,12 +37,9 @@ namespace custom_config {
 
   // Called once on each iteration of the Arduino main loop().
   extern void loop();
-  
-  inline boolean is_enabled() {
-    return private_::is_enabled;
-  }
 
-}  // namespace custom_config
+  inline boolean is_enabled() { return private_::is_enabled; }
+
+} // namespace custom_config
 
 #endif
-

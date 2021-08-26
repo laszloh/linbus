@@ -26,8 +26,7 @@ namespace custom_module {
 
   // Called once when a new valid frame was recieved.
   extern void frameArrived(const LinFrame& frame);
-  
-}  // namespace custom_module
+
+} // namespace custom_module
 
 #endif
-

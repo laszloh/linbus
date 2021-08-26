@@ -16,12 +16,12 @@
 
 #include "custom_signals.h"
 
-// Like all the other custom_* files, this file should be adapted to the specific application.
-// The example provided is for a Reverse Gear beeper for the 981/Cayman.
+// Like all the other custom_* files, this file should be adapted to the specific
+// application. The example provided is for a Reverse Gear beeper for the 981/Cayman.
 namespace custom_config {
 
-  // The entire config toggle suquence from ignition on to ignition off must be completed within
-  // time time.
+  // The entire config toggle suquence from ignition on to ignition off must be completed
+  // within time time.
   static const uint16_t kSequenceTimeoutMillis = 20 * 1000;
 
   // The config toggle sequence need to include exactly this number of consecutive
@@ -41,7 +41,7 @@ namespace custom_config {
     static const uint8_t IGNITION_OFF_TOGGLE_CONFIG = 3;
   }
 
-  // Current button recognizer state. One of states:: values. 
+  // Current button recognizer state. One of states:: values.
   static uint8_t state;
 
   // Time in current state.
@@ -66,7 +66,8 @@ namespace custom_config {
   // Toggle the current configuration, with eeprom persistnce.
   static inline void toggleConfig() {
     // Toggle the eeprom code.
-    const uint16_t eeprom_code = (private_::is_enabled) ? eeprom_uint16_t_code::DISABLED : eeprom_uint16_t_code::ENABLED;
+    const uint16_t eeprom_code = (private_::is_enabled) ? eeprom_uint16_t_code::DISABLED
+                                                        : eeprom_uint16_t_code::ENABLED;
     eeprom_write_word(0, eeprom_code);
     Serial.println(F("config toggled"));
 
@@ -98,65 +99,66 @@ namespace custom_config {
 
     // Handle the state transitions.
     switch (state) {
-      case states::IGNITION_OFF_IDLE:
-        if (custom_signals::ignition_state().isOn()) {
-          button_click_count = 0;
-          button_last_state = custom_signals::config_button().state();
-          changeToState(states::IGNITION_ON_COUNTING);  
-        }
-        break;
+    case states::IGNITION_OFF_IDLE:
+      if (custom_signals::ignition_state().isOn()) {
+        button_click_count = 0;
+        button_last_state = custom_signals::config_button().state();
+        changeToState(states::IGNITION_ON_COUNTING);
+      }
+      break;
 
-      case states::IGNITION_ON_COUNTING: 
-        {
-          // If sequence takes too long too long or too many clicks then ignore.
-          if (time_in_state.timeMillis() > kSequenceTimeoutMillis || button_click_count > kExpectedButtonClicks) {
-            changeToState(states::IGNITION_ON_IDLE);  
-            break;
-          }
-  
-          // If ignition turned off, see if we have the conditions to toggle configuration.
-          if (custom_signals::ignition_state().isOff()) {
-            changeToState(button_click_count == kExpectedButtonClicks 
-                ? states::IGNITION_OFF_TOGGLE_CONFIG 
-                : states::IGNITION_OFF_IDLE);
-            break;
-          }
-  
-          const uint8_t button_new_state = custom_signals::config_button().state();
-          // Count change from non pressed to pressed.
-          if ((button_last_state == SignalTracker::States::OFF) && (button_new_state == SignalTracker::States::ON)) {
-            // This cannot overflow because we exist this state if exceeding kExpectedButtonClicks. 
-            button_click_count++;
-            Serial.print(F("config state: "));
-            Serial.print(states::IGNITION_ON_COUNTING);
-            Serial.print('.');
-            Serial.println(button_click_count);
-          }
-          button_last_state = button_new_state;
-        }
-        break;
-
-      case states::IGNITION_ON_IDLE:
-        if (custom_signals::ignition_state().isOff()) {
-          changeToState(states::IGNITION_OFF_IDLE);  
-        }
-        break;
-
-      case states::IGNITION_OFF_TOGGLE_CONFIG:
-        toggleConfig();
-        changeToState(states::IGNITION_OFF_IDLE);
-        break;
-
-      // Unknown state, set to initial.
-      default:
-        Serial.print(F("config state: unknown ("));
-        Serial.print(state);
-        Serial.println(')');
-
-        // Go to a default state and wait there until ignition is off.
+    case states::IGNITION_ON_COUNTING: {
+      // If sequence takes too long too long or too many clicks then ignore.
+      if (time_in_state.timeMillis() > kSequenceTimeoutMillis
+          || button_click_count > kExpectedButtonClicks) {
         changeToState(states::IGNITION_ON_IDLE);
         break;
-    } 
+      }
+
+      // If ignition turned off, see if we have the conditions to toggle configuration.
+      if (custom_signals::ignition_state().isOff()) {
+        changeToState(button_click_count == kExpectedButtonClicks
+                ? states::IGNITION_OFF_TOGGLE_CONFIG
+                : states::IGNITION_OFF_IDLE);
+        break;
+      }
+
+      const uint8_t button_new_state = custom_signals::config_button().state();
+      // Count change from non pressed to pressed.
+      if ((button_last_state == SignalTracker::States::OFF)
+          && (button_new_state == SignalTracker::States::ON)) {
+        // This cannot overflow because we exist this state if exceeding
+        // kExpectedButtonClicks.
+        button_click_count++;
+        Serial.print(F("config state: "));
+        Serial.print(states::IGNITION_ON_COUNTING);
+        Serial.print('.');
+        Serial.println(button_click_count);
+      }
+      button_last_state = button_new_state;
+    } break;
+
+    case states::IGNITION_ON_IDLE:
+      if (custom_signals::ignition_state().isOff()) {
+        changeToState(states::IGNITION_OFF_IDLE);
+      }
+      break;
+
+    case states::IGNITION_OFF_TOGGLE_CONFIG:
+      toggleConfig();
+      changeToState(states::IGNITION_OFF_IDLE);
+      break;
+
+    // Unknown state, set to initial.
+    default:
+      Serial.print(F("config state: unknown ("));
+      Serial.print(state);
+      Serial.println(')');
+
+      // Go to a default state and wait there until ignition is off.
+      changeToState(states::IGNITION_ON_IDLE);
+      break;
+    }
   }
 
   // Called repeatidly from the main loop().
@@ -165,7 +167,4 @@ namespace custom_config {
     updateState();
   }
 
-}  // namespace custom_module
-
-
-
+} // namespace custom_module

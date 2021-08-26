@@ -19,13 +19,13 @@
 
 // Tracks signals on the linbus that we use for this custom application.
 //
-// Like all the other custom_* files, this file should be adapted to the specific application.
-// The example provided is for a Reverse Gear beeper for the 981/Cayman.
+// Like all the other custom_* files, this file should be adapted to the specific
+// application. The example provided is for a Reverse Gear beeper for the 981/Cayman.
 namespace custom_signals {
   namespace private_ {
     // Tracks the ingition-on status.
     extern SignalTracker ignition_on_signal_tracker;
-    
+
     // Tracks the state of the config button.
     // This button is mapped to the P981/CS Sport Mode button.
     extern SignalTracker button_signal_tracker;
@@ -45,11 +45,8 @@ namespace custom_signals {
     return private_::ignition_on_signal_tracker;
   }
 
-  inline const SignalTracker& config_button() {
-    return private_::button_signal_tracker;
-  }
-  
-}  // namespace custom_signals
+  inline const SignalTracker& config_button() { return private_::button_signal_tracker; }
+
+} // namespace custom_signals
 
 #endif
-

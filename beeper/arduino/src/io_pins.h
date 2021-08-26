@@ -16,78 +16,68 @@
 #include "avr_util.h"
 
 namespace io_pins {
-  // A class to abstract an output pin that is not necesarily an arduino 
+  // A class to abstract an output pin that is not necesarily an arduino
   // digital pin. Also optimized for fast setOn/Off.
   //
   // Assumes that interrupts are enabled and thus should not be called
   // from ISRs.
 
-  template<uint8_t port_addr, int pin_nr, bool pullUp>
-  class InputPin {
-    protected:
-      uint8_t *port = reinterpret_cast<uint8_t*>(port_addr);
-      uint8_t *ddr = reinterpret_cast<uint8_t*>(port_addr - 1);
-      uint8_t *pin = reinterpret_cast<uint8_t*>(port_addr - 2);
+  template <uint8_t port_addr, int pin_nr, bool pullUp> class InputPin {
+  protected:
+    uint8_t* port = reinterpret_cast<uint8_t*>(port_addr);
+    uint8_t* ddr = reinterpret_cast<uint8_t*>(port_addr - 1);
+    uint8_t* pin = reinterpret_cast<uint8_t*>(port_addr - 2);
 
-    public:
-      void setup() {
-        *ddr &= ~_BV(pin_nr);
-        if(pullUp) {
-          *port |= _BV(pin_nr);
-        } else {
-          *port &= ~_BV(pin_nr);
-        }
-      }
-
-      bool isHigh() const {
-        return *pin & _BV(pin_nr);
-      }
-  };
-
-  template<uint8_t port_addr, uint8_t pin_nr, bool inital>
-  class OutputPin {
-      uint8_t *port = reinterpret_cast<uint8_t*>(port_addr);
-      uint8_t *ddr = reinterpret_cast<uint8_t*>(port_addr - 1);
-      uint8_t *pin = reinterpret_cast<uint8_t*>(port_addr - 2);
-
-    public:
-      void setup(){
-        *ddr |= _BV(pin_nr);
-        set(inital);
-      }
-
-      void low() {
-        avr::interrupt::atomic<> lock;
-        *port &=~_BV(pin_nr);
-      }
-
-      void high() {
-        avr::interrupt::atomic<> lock;
+  public:
+    void setup() {
+      *ddr &= ~_BV(pin_nr);
+      if (pullUp) {
         *port |= _BV(pin_nr);
+      } else {
+        *port &= ~_BV(pin_nr);
       }
+    }
 
-      void set(bool level) {
-        if(level)
-          high();
-        else
-          low();
-      }
-
-      void toggle() {
-        *pin |= _BV(pin_nr);
-      }
-
-      bool ishigh() const {
-        return *pin & _BV(pin_nr);
-      }
+    bool isHigh() const { return *pin & _BV(pin_nr); }
   };
 
-  static const int PORTB_ADDR = (int) &PORTB;
-  static const int PORTC_ADDR = (int) &PORTC;
-  static const int PORTD_ADDR = (int) &PORTD;
-  
-}  // namespace io_pins
+  template <uint8_t port_addr, uint8_t pin_nr, bool inital> class OutputPin {
+    uint8_t* port = reinterpret_cast<uint8_t*>(port_addr);
+    uint8_t* ddr = reinterpret_cast<uint8_t*>(port_addr - 1);
+    uint8_t* pin = reinterpret_cast<uint8_t*>(port_addr - 2);
+
+  public:
+    void setup() {
+      *ddr |= _BV(pin_nr);
+      set(inital);
+    }
+
+    void low() {
+      avr::interrupt::atomic<> lock;
+      *port &= ~_BV(pin_nr);
+    }
+
+    void high() {
+      avr::interrupt::atomic<> lock;
+      *port |= _BV(pin_nr);
+    }
+
+    void set(bool level) {
+      if (level)
+        high();
+      else
+        low();
+    }
+
+    void toggle() { *pin |= _BV(pin_nr); }
+
+    bool ishigh() const { return *pin & _BV(pin_nr); }
+  };
+
+  static const int PORTB_ADDR = (int)&PORTB;
+  static const int PORTC_ADDR = (int)&PORTC;
+  static const int PORTD_ADDR = (int)&PORTD;
+
+} // namespace io_pins
 
 #endif
-
-

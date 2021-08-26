@@ -18,10 +18,8 @@
 // A buffer for a single frame.
 class LinFrame {
 public:
-  LinFrame() {
-   reset();
-  }
-  
+  LinFrame() { reset(); }
+
   // Number of bytes in a shotest frame. This is a frame with ID byte and no
   // slave response (and thus no data or checksum).
   static const uint8_t kMinBytes = 1;
@@ -32,47 +30,36 @@ public:
   // Compute the to checkum bits [P1,P0] of the lin id in bits [5:0] and return
   // [P1,P0][5:0] which is the wire representation of this id.
   static uint8_t setLinIdChecksumBits(uint8_t id);
-  
+
   boolean isValid() const;
-  
-  // Compute LIN frame checksum. Assuming buffer has at least one byte. A valid 
+
+  // Compute LIN frame checksum. Assuming buffer has at least one byte. A valid
   // frame should contain one byte for id, 1-8 bytes for data, one byte for checksum.
   uint8_t computeChecksum() const;
 
-  inline void reset() {
-    num_bytes_ = 0;
-  }
+  inline void reset() { num_bytes_ = 0; }
 
-  inline uint8_t num_bytes() const {
-    return num_bytes_;
-  }
-  
+  inline uint8_t num_bytes() const { return num_bytes_; }
+
   // Get a the frame byte of given inde.
   // Byte index 0 is the frame id byte, followed by 1-8 data bytes
   // followed by 1 checksum byte.
   //
   // Caller should verify that index < num_bytes.
-  inline uint8_t get_byte(uint8_t index) const {
-    return bytes_[index];
-  }
-  
+  inline uint8_t get_byte(uint8_t index) const { return bytes_[index]; }
+
   // Caller should check that num_bytes < kMaxBytes;
-  inline void append_byte(uint8_t value) {
-    bytes_[num_bytes_++] = value;
-  }
-  
+  inline void append_byte(uint8_t value) { bytes_[num_bytes_++] = value; }
+
   // TODO: make this stuff private without sacrifying performance.
-  
+
 private:
   // Number of bytes in bytes_ buffer. At most kMaxBytes.
   uint8_t num_bytes_;
 
-  // Recieved frame bytes. Includes id, data and checksum. Does not 
+  // Recieved frame bytes. Includes id, data and checksum. Does not
   // include the 0x55 sync byte.
   uint8_t bytes_[kMaxBytes];
 };
 
-#endif  
-
-
-
+#endif

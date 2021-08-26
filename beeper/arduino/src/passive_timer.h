@@ -18,26 +18,16 @@
 // A wrapper around system clock that provides millisecond based time measurments.
 class PassiveTimer {
 public:
-  PassiveTimer() {
-    restart();
-  }
+  PassiveTimer() { restart(); }
 
-  inline void restart() {
-    start_time_millis_ = millis();
-  }
+  inline void restart() { start_time_millis_ = millis(); }
 
-  void copy(const PassiveTimer &other) {
-    start_time_millis_ = other.start_time_millis_;
-  }
+  void copy(const PassiveTimer& other) { start_time_millis_ = other.start_time_millis_; }
 
-  inline uint32_t timeMillis() const {
-    return millis() - start_time_millis_;
-  }
+  inline uint32_t timeMillis() const { return millis() - start_time_millis_; }
 
 private:
   uint32_t start_time_millis_;
 };
 
 #endif
-
-

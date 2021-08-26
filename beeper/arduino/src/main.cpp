@@ -21,15 +21,14 @@
 static ActionLed<io_pins::PORTB_ADDR, 1> errors_activity_led;
 
 // Arduino setup function. Called once during initialization.
-void setup()
-{
+void setup() {
   // Hard coded to 115.2k baud. Uses URART0, no interrupts.
   // Initialize this first since some setup methods uses it.
   Serial.begin(115200);
 
   // Uses Timer2 with interrupts, and a few i/o pins. See source code for details.
   lin_processor::setup();
-  
+
   custom_module::setup();
 
   // Enable global interrupts. We expect to have only timer1 interrupts by
@@ -38,15 +37,14 @@ void setup()
 }
 
 // Arduino loop() method. Called after setup(). Never returns.
-// This is a quick loop that does not use delay() or other busy loops or 
+// This is a quick loop that does not use delay() or other busy loops or
 // blocking calls.
-void loop()
-{
+void loop() {
   // Having our own loop shaves about 4 usec per iteration. It also eliminate
   // any underlying functionality that we may not want.
-  for(;;) {    
-    // Periodic updates.   
-    errors_activity_led.loop();  
+  for (;;) {
+    // Periodic updates.
+    errors_activity_led.loop();
     custom_module::loop();
 
     // Print a periodic text messages if no activiy.
@@ -62,7 +60,7 @@ void loop()
       static PassiveTimer lin_errors_timeout;
       // Accomulates error flags until next printing.
       static uint8_t pending_lin_errors = 0;
-      
+
       const uint8_t new_lin_errors = lin_processor::getAndClearErrorFlags();
       if (new_lin_errors) {
         // Make the ERRORS led blinking.
@@ -85,26 +83,26 @@ void loop()
     LinFrame frame;
     if (lin_processor::readNextFrame(&frame)) {
       const boolean frameOk = frame.isValid();
-      
+
       if (!frameOk) {
         // Make the ERRORS frame blinking.
         errors_activity_led.action();
       }
-      
+
       // Print frame to serial port.
       for (int i = 0; i < frame.num_bytes(); i++) {
         if (i > 0) {
-          Serial.print(' ');  
+          Serial.print(' ');
         }
         Serial.print(frame.get_byte(i), 16);
       }
       if (!frameOk) {
         Serial.print(F(" ERR"));
       }
-      Serial.println();  
+      Serial.println();
       // Supress the 'waiting' messages.
-      idle_timer.restart(); 
-    
+      idle_timer.restart();
+
       if (frameOk) {
         // Inform the custom logic about the incoming frame.
         custom_module::frameArrived(frame);
@@ -112,4 +110,3 @@ void loop()
     }
   }
 }
-

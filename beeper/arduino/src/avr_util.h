@@ -36,4 +36,3 @@ inline byte bitMask(byte bit_index) {
 }
 
 #endif
-
