@@ -25,54 +25,45 @@ namespace io_pins {
   template<uint8_t port_addr, int pin_nr, bool pullUp>
   class InputPin {
     protected:
-      struct PORT_t {
-        uint8_t port;
-        uint8_t ddr;
-        uint8_t pin;
-      };
-
-      PORT_t *p = reinterpret_cast<PORT_t *>(port_addr);
+      uint8_t *port = reinterpret_cast<uint8_t*>(port_addr);
+      uint8_t *ddr = reinterpret_cast<uint8_t*>(port_addr - 1);
+      uint8_t *pin = reinterpret_cast<uint8_t*>(port_addr - 2);
 
     public:
       void setup() {
-        p->ddr &= ~_BV(pin_nr);
+        *ddr &= ~_BV(pin_nr);
         if(pullUp) {
-          p->port |= _BV(pin_nr);
+          *port |= _BV(pin_nr);
         } else {
-          p->port &= ~_BV(pin_nr);
+          *port &= ~_BV(pin_nr);
         }
       }
 
-      bool isHigh() {
-        return p->pin & _BV(pin_nr);
+      bool isHigh() const {
+        return *pin & _BV(pin_nr);
       }
   };
 
   template<uint8_t port_addr, uint8_t pin_nr, bool inital>
   class OutputPin {
-    protected:
-      struct PORT_t {
-        uint8_t port;
-        uint8_t ddr;
-        uint8_t pin;
-      };
-
-      PORT_t *p = reinterpret_cast<PORT_t *>(port_addr);
+      uint8_t *port = reinterpret_cast<uint8_t*>(port_addr);
+      uint8_t *ddr = reinterpret_cast<uint8_t*>(port_addr - 1);
+      uint8_t *pin = reinterpret_cast<uint8_t*>(port_addr - 2);
 
     public:
       void setup(){
-        p->ddr |= _BV(pin_nr);
+        *ddr |= _BV(pin_nr);
         set(inital);
       }
 
       void low() {
         avr::interrupt::atomic<> lock;
-        p->port &=~_BV(pin_nr);
+        *port &=~_BV(pin_nr);
       }
 
       void high() {
         avr::interrupt::atomic<> lock;
-        p->port |= _BV(pin_nr);
+        *port |= _BV(pin_nr);
       }
 
       void set(bool level) {
@@ -82,14 +73,18 @@ namespace io_pins {
           low();
       }
 
-      void toggle(){
-        p->pin |= _BV(pin_nr);
+      void toggle() {
+        *pin |= _BV(pin_nr);
+      }
+
+      bool ishigh() const {
+        return *pin & _BV(pin_nr);
       }
   };
 
-  static const int PORTB_ADDR = (int) &PINB;
-  static const int PORTC_ADDR = (int) &PINC;
-  static const int PORTD_ADDR = (int) &PIND;
+  static const int PORTB_ADDR = (int) &PORTB;
+  static const int PORTC_ADDR = (int) &PORTC;
+  static const int PORTD_ADDR = (int) &PORTD;
   
 }  // namespace io_pins
 
