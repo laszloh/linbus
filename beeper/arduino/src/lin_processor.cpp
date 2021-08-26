@@ -190,11 +190,12 @@ namespace lin_processor {
   // ----- State Machine Declaration -----
 
   // Like enum but 8 bits only.
-  namespace states {
-    static const uint8_t DETECT_BREAK = 1;
-    static const uint8_t READ_DATA = 2;
-  }
-  static uint8_t state;
+  enum class StateMachine : uint8_t {
+    DETECT_BREAK = 1,
+    CLOCK_SYNC,
+    READ_DATA,
+  };
+  static StateMachine state;
 
   class StateDetectBreak {
    public:
@@ -203,6 +204,15 @@ namespace lin_processor {
     
    private:
     static uint8_t low_bits_counter_;
+  };
+
+  class StateClockSync {
+    public:
+      static inline void enter();
+      static inline void handleIsr();
+
+    private:
+      uint16_t counter_;
   };
 
   class StateReadData {
@@ -391,7 +401,7 @@ namespace lin_processor {
   uint8_t StateDetectBreak::low_bits_counter_;
 
   inline void StateDetectBreak::enter() {
-    state = states::DETECT_BREAK;
+    state = StateMachine::DETECT_BREAK;
     low_bits_counter_ = 0;
   }
 
@@ -428,7 +438,7 @@ namespace lin_processor {
 
   // Called on the low to high transition at the end of the break.
   inline void StateReadData::enter() {
-    state = states::READ_DATA;
+    state = StateMachine::READ_DATA;
     bytes_read_ = 0;
     bits_read_in_byte_ = 0;
     rx_frame_buffers[head_frame_buffer].reset();
@@ -553,10 +563,10 @@ namespace lin_processor {
     isr_pin.high();
     // TODO: make this state a boolean instead of enum? (efficency).
     switch (state) {
-    case states::DETECT_BREAK:
+    case StateMachine::DETECT_BREAK:
       StateDetectBreak::handleIsr();
       break;
-    case states::READ_DATA:
+    case StateMachine::READ_DATA:
       StateReadData::handleIsr();
       break;
     default:
