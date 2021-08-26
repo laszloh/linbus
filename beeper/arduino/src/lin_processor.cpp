@@ -37,7 +37,7 @@ namespace lin_processor {
     // Initialized to given baud rate. 
     void setup() {
       static_assert(baud_ > 1000 && baud_ < 20000, "ERROR: kLinSpeed out of range");
-      }
+    }
 
     inline uint16_t baud() const { 
       return baud_; 
@@ -155,34 +155,18 @@ namespace lin_processor {
   }
 
   // ----- ISR To Main Data Transfer -----
-
-  // Increment by the ISR to indicates to the main program when the ISR returned.
-  // This is used to defered disabling interrupts until the ISR completes to 
-  // reduce ISR jitter time.
-  static volatile uint8_t isr_marker;
-  
-  // Should be called from main only. 
-  static inline void waitForIsrEnd() {
-    const uint8_t value = isr_marker;
-    // Wait until the next ISR ends.
-    while (value == isr_marker) {
-    } 
-  }
   
   // Public. Called from main. See .h for description.
   boolean readNextFrame(LinFrame* buffer) {
     boolean result = false;
-    waitForIsrEnd();
-    {
-      avr::interrupt::atomic<> lock;
-      if (tail_frame_buffer != head_frame_buffer) {
-        //led::setHigh();
-        // This copies the request buffer struct.
-        *buffer = rx_frame_buffers[tail_frame_buffer];
-        incrementTailFrameBuffer();
-        result = true;
-        //led::setLow();
-      }
+    avr::interrupt::atomic<> lock;
+    if (tail_frame_buffer != head_frame_buffer) {
+      //led::setHigh();
+      // This copies the request buffer struct.
+      *buffer = rx_frame_buffers[tail_frame_buffer];
+      incrementTailFrameBuffer();
+      result = true;
+      //led::setLow();
     }
     return result; 
   }
@@ -359,7 +343,7 @@ namespace lin_processor {
   // false if timeout. Keeps timer reset during the wait.
   // Called from ISR only.
   static inline boolean waitForRxLow(uint16_t max_clock_ticks) {
-    const uint16_t base_clock = hardware_clock::ticksForIsr();
+    // const uint16_t base_clock = hardware_clock::ticksForIsr();
     for(;;) {
       // Keep the tick timer not ticking (no ISR).
       resetTickTimer();
@@ -369,12 +353,12 @@ namespace lin_processor {
         return true;
       }
 
-      // Test for timeout.
-      // Should work also in case of 16 bit clock overflow.
-      const uint16_t clock_diff = hardware_clock::ticksForIsr() - base_clock;
-      if (clock_diff >= max_clock_ticks) {
-        return false; 
-      }
+      // // Test for timeout.
+      // // Should work also in case of 16 bit clock overflow.
+      // const uint16_t clock_diff = hardware_clock::ticksForIsr() - base_clock;
+      // if (clock_diff >= max_clock_ticks) {
+      //   return false; 
+      // }
     } 
   }
 
@@ -382,17 +366,17 @@ namespace lin_processor {
   // We clone to code for time optimization.
   // Called from ISR only.
   static inline boolean waitForRxHigh(uint16_t max_clock_ticks) {
-    const uint16_t base_clock = hardware_clock::ticksForIsr();
+    // const uint16_t base_clock = hardware_clock::ticksForIsr();
     for(;;) {
       resetTickTimer();
       if (rx_pin.isHigh()) {
         return true;
       }
-      // Should work also in case of an clock overflow.
-      const uint16_t clock_diff = hardware_clock::ticksForIsr() - base_clock;
-      if (clock_diff >= max_clock_ticks) {
-        return false; 
-      }
+      // // Should work also in case of an clock overflow.
+      // const uint16_t clock_diff = hardware_clock::ticksForIsr() - base_clock;
+      // if (clock_diff >= max_clock_ticks) {
+      //   return false; 
+      // }
     } 
   }
 
@@ -574,11 +558,6 @@ namespace lin_processor {
       StateDetectBreak::enter();
     }
 
-    // Increment the isr flag to indicate to the main that the ISR just
-    // exited and interrupts can be temporarily disabled without causes ISR 
-    // jitter.
-    isr_marker++;
-    
     isr_pin.low();
   }
 }  // namespace lin_processor
