@@ -16,7 +16,6 @@
 
 #include "avr_util.h"
 #include "custom_defs.h"
-#include "hardware_clock.h"
 
 // ----- Baud rate related parameters. ---
 

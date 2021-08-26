@@ -14,7 +14,6 @@
 #include "action_led.h"
 #include "avr_util.h"
 #include "custom_module.h"
-#include "hardware_clock.h"
 #include "io_pins.h"
 #include "lin_processor.h"
 
@@ -27,9 +26,6 @@ void setup()
   // Hard coded to 115.2k baud. Uses URART0, no interrupts.
   // Initialize this first since some setup methods uses it.
   Serial.begin(115200);
-
-  // Uses Timer1, no interrupts.
-  hardware_clock::setup();
 
   // Uses Timer2 with interrupts, and a few i/o pins. See source code for details.
   lin_processor::setup();
