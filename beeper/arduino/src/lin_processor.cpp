@@ -34,33 +34,16 @@ namespace lin_processor {
 
   class Config : public Printable {
    public:
-#if F_CPU != 16000000
-#error "The existing code assumes 16Mhz CPU clk."
-#endif
     // Initialized to given baud rate. 
     void setup() {
-      // If baud rate out of range use default speed.
-      uint16_t baud = custom_defs::kLinSpeed; 
-      if (baud < 1000 || baud > 20000) {
-        Serial.println(F("ERROR: kLinSpeed out of range"));
-        baud = kDefaultBaud;
+      static_assert(baud_ > 1000 && baud_ < 20000, "ERROR: kLinSpeed out of range");
       }
-      baud_ = baud; 
-      prescaler_x64_ = baud < 8000;
-      const uint8_t prescaling = prescaler_x64_ ? 64 : 8;  
-      counts_per_bit_ = (((16000000L / prescaling) / baud));
-      // Adding two counts to compensate for software delay.
-      counts_per_half_bit_ = (counts_per_bit_ / 2) + 2;
-      clock_ticks_per_bit_ = (hardware_clock::kTicksPerMilli * 1000) / baud;
-      clock_ticks_per_half_bit_ = clock_ticks_per_bit_ / 2;
-      clock_ticks_per_until_start_bit_ = clock_ticks_per_bit_ * kMaxSpaceBits;
-    }
 
     inline uint16_t baud() const { 
       return baud_; 
     }
 
-    inline boolean prescaler_x64() {
+    inline boolean prescaler_x64() const {
       return prescaler_x64_;
     }
 
@@ -90,16 +73,17 @@ namespace lin_processor {
       return p.println(buffer);
     }
    private:
-    uint16_t baud_;
+    static constexpr uint16_t baud_ = custom_defs::kLinSpeed;
     // False -> x8, true -> x64.
     // TODO: timer2 also have x32 scalingl Could use it for better 
     // accuracy in the mid baude range.
-    boolean prescaler_x64_;
-    uint8_t counts_per_bit_;
-    uint8_t counts_per_half_bit_;
-    uint8_t clock_ticks_per_bit_;
-    uint8_t clock_ticks_per_half_bit_;
-    uint8_t clock_ticks_per_until_start_bit_;
+    static constexpr boolean prescaler_x64_= (baud_ < 8000);
+    static constexpr uint8_t prescaling_ = prescaler_x64_ ? 64 : 8;
+    static constexpr uint8_t counts_per_bit_ = (((F_CPU / prescaling_) / baud_));
+    static constexpr uint8_t counts_per_half_bit_ = (counts_per_bit_ / 2) + 2;
+    static constexpr uint8_t clock_ticks_per_bit_ = 250000 / baud_;
+    static constexpr uint8_t clock_ticks_per_half_bit_ = clock_ticks_per_bit_ / 2;
+    static constexpr uint8_t clock_ticks_per_until_start_bit_ = clock_ticks_per_bit_ * kMaxSpaceBits;
   };
 
   // The actual configurtion. Initialized in setup() based on baud rate.  
@@ -135,7 +119,7 @@ namespace lin_processor {
   // ----- ISR RX Ring Buffers -----
 
   // Frame buffer queue size.
-  static const uint8_t kMaxFrameBuffers = 8;
+  static constexpr uint8_t kMaxFrameBuffers = 8;
 
   // RX Frame buffers queue. Read/Writen by ISR only. 
   static LinFrame rx_frame_buffers[kMaxFrameBuffers];
