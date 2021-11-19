@@ -17,6 +17,9 @@
 #include "avr_util.h"
 #include "custom_defs.h"
 
+#include "avr8-stub.h"
+#include "app_api.h" // only needed with flash breakpoints
+
 // ----- Baud rate related parameters. ---
 
 // If an out of range speed is specified, using this one.
@@ -82,20 +85,24 @@ namespace lin_processor {
   // This way we shave a few cycles from the ISR.
 
   // LIN interface.
-  io_pins::InputPin<io_pins::PORTD_ADDR, 2, true> rx_pin;
+  io_pins::InputPin<io_pins::PORTB_ADDR, 0, true> rx_pin;
   // TODO: tie this pin to the TX pin of the ata6631 ic, for future applications.
-  io_pins::OutputPin<io_pins::PORTC_ADDR, 2, true> tx1_pin;
+  io_pins::OutputPin<io_pins::PORTB_ADDR, 1, true> tx1_pin;
+
+  io_pins::OutputPin<io_pins::PORTC_ADDR, 2, true> en_pin;
 
   // Debugging signals.
   io_pins::OutputPin<io_pins::PORTC_ADDR, 0, false> break_pin;
-  io_pins::OutputPin<io_pins::PORTB_ADDR, 4, false> sample_pin;
-  io_pins::OutputPin<io_pins::PORTB_ADDR, 3, false> error_pin;
-  io_pins::OutputPin<io_pins::PORTC_ADDR, 3, false> isr_pin;
-  io_pins::OutputPin<io_pins::PORTD_ADDR, 6, false> gp_pin;
+  io_pins::OutputPin<io_pins::PORTC_ADDR, 1, false> sample_pin;
+  io_pins::OutputPin<io_pins::PORTC_ADDR, 3, false> error_pin;
+  io_pins::OutputPin<io_pins::PORTC_ADDR, 4, false> isr_pin;
+  io_pins::OutputPin<io_pins::PORTC_ADDR, 5, false> gp_pin;
 
   // Called one during initialization.
   static inline void setupPins() {
     rx_pin.setup();
+    tx1_pin.setup();
+    en_pin.setup();
     break_pin.setup();
     sample_pin.setup();
     error_pin.setup();
@@ -265,10 +272,10 @@ namespace lin_processor {
       const uint8_t mask = pgm_read_byte(&kErrorBitNames[i].mask);
       if (lin_errors & mask) {
         if (any_printed) {
-          Serial.print(' ');
+          // Serial.print(' ');
         }
         const char* const name = (const char*)pgm_read_word(&kErrorBitNames[i].name);
-        Serial.print(name);
+        // Serial.print(name);
         any_printed = true;
       }
     }
@@ -283,7 +290,7 @@ namespace lin_processor {
     // IC Noise Cancel
     // IC on Falling Edge
     TCCR1A = 0;
-    TCCR1B = _BV(WGM12) | _BV(CS10) | _BV(ICES1) | _BV(ICNC1);
+    TCCR1B = _BV(WGM12) | _BV(CS10) | _BV(ICNC1);
 
     // Determines baud rate (transmit)
     OCR1A = config.counts_per_bit() - 1;
@@ -298,6 +305,8 @@ namespace lin_processor {
     // Should be done first since some of the steps below depends on it.
     config.setup();
 
+    debug_init();
+
     setupPins();
     setupBuffers();
     StateDetectBreak::enter();
@@ -305,7 +314,7 @@ namespace lin_processor {
     error_flags = 0;
 
     // TODO: move this to config class.
-    Serial.println(config);
+    // Serial.println(config);
   }
 
   // ----- ISR Utility Functions -----
@@ -313,12 +322,12 @@ namespace lin_processor {
   // Set timer value to zero.
   static inline void setIC1Interrupt() {
     TIFR1 = _BV(ICF1);
-    TIMSK1 = _BV(ICIE1) | (TIMSK1 & ~_BV(OCIE1B)) | _BV(TOIE1);
+    TIMSK1 = _BV(ICIE1) | (TIMSK1 & ~_BV(OCIE1B));
   }
 
   static inline void setOC1BInterrupt() {
     TIFR1 = _BV(OCF1B);
-    TIMSK1 = (TIMSK1 & ~_BV(ICIE1)) | _BV(OCIE1B) | _BV(TOIE1);
+    TIMSK1 = _BV(OCIE1B);
   }
 
   // ----- Detect-Break State Implementation -----
@@ -529,27 +538,28 @@ namespace lin_processor {
 
   // Interrupt on Timer 1 A-match.
   ISR(TIMER1_COMPB_vect) {
-    isr_pin.high();
-    switch (state) {
-    case StateMachine::DETECT_BREAK:
-      StateDetectBreak::handleIsr();
-      break;
-    case StateMachine::CLOCK_SYNC:
-      StateClockSync::handleIsr();
-      break;
-    case StateMachine::READ_DATA:
-      StateReadData::handleIsr();
-      break;
-    default:
-      setErrorFlags(Errors::OTHER);
-      StateDetectBreak::enter();
-    }
+    break_pin.high();
+    // switch (state) {
+    // case StateMachine::DETECT_BREAK:
+    //   StateDetectBreak::handleIsr();
+    //   break;
+    // case StateMachine::CLOCK_SYNC:
+    //   StateClockSync::handleIsr();
+    //   break;
+    // case StateMachine::READ_DATA:
+    //   StateReadData::handleIsr();
+    //   break;
+    // default:
+    //   setErrorFlags(Errors::OTHER);
+    //   StateDetectBreak::enter();
+    // }
 
-    isr_pin.low();
-  }
+    uint8_t cnt=0;
+    for(;cnt<5;cnt++){}
 
-  ISR(TIMER1_OVF_vect) {
-    if (state == StateMachine::READ_DATA) {
+    breakpoint();
+
+    // if (state == StateMachine::READ_DATA) {
       // we are currently reading bytes
 
       // detect end of frame by checking the current time against the last time we got a
@@ -559,8 +569,12 @@ namespace lin_processor {
       if (offset
           > (uint32_t)(config.millis_until_start_bit() + 10 * config.millis_per_bit())) {
         // last Input Capture interrupt was at least a frame + 6 frameBits ago
+        sample_pin.high();
         StateReadData::finish();
+        sample_pin.low();
       }
-    }
+    // }
+
+    break_pin.low();
   }
 } // namespace lin_processor
