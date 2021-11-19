@@ -24,7 +24,7 @@ static ActionLed<io_pins::PORTB_ADDR, 1> errors_activity_led;
 void setup() {
   // Hard coded to 115.2k baud. Uses URART0, no interrupts.
   // Initialize this first since some setup methods uses it.
-  Serial.begin(115200);
+  // Serial.begin(57600);
 
   // Uses Timer2 with interrupts, and a few i/o pins. See source code for details.
   lin_processor::setup();
@@ -47,7 +47,7 @@ void loop() {
   // Print a periodic text messages if no activiy.
   static PassiveTimer idle_timer;
   if (idle_timer.timeMillis() >= 5000) {
-    Serial.println(F("waiting..."));
+    // Serial.println(F("waiting..."));
     idle_timer.restart();
   }
 
@@ -68,9 +68,9 @@ void loop() {
     // If pending errors and time to print then print and clear.
     pending_lin_errors |= new_lin_errors;
     if (pending_lin_errors && lin_errors_timeout.timeMillis() > 1000) {
-      Serial.println(F("LIN errors: "));
+      // Serial.println(F("LIN errors: "));
       lin_processor::printErrorFlags(pending_lin_errors);
-      Serial.println();
+      // Serial.println();
       lin_errors_timeout.restart();
       pending_lin_errors = 0;
     }
@@ -89,14 +89,14 @@ void loop() {
     // Print frame to serial port.
     for (int i = 0; i < frame.num_bytes(); i++) {
       if (i > 0) {
-        Serial.print(' ');
+        // Serial.print(' ');
       }
-      Serial.print(frame.get_byte(i), 16);
+      // Serial.print(frame.get_byte(i), 16);
     }
     if (!frameOk) {
-      Serial.print(F(" ERR"));
+      // Serial.print(F(" ERR"));
     }
-    Serial.println();
+    // Serial.println();
     // Supress the 'waiting' messages.
     idle_timer.restart();
 

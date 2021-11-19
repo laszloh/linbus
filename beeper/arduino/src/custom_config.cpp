@@ -59,8 +59,8 @@ namespace custom_config {
 
     // If the code is unknown we default to enabled.
     private_::is_enabled = eeprom_code != eeprom_uint16_t_code::DISABLED;
-    Serial.print(F("config loaded:"));
-    Serial.println(private_::is_enabled);
+    // Serial.print(F("config loaded:"));
+    // Serial.println(private_::is_enabled);
   }
 
   // Toggle the current configuration, with eeprom persistnce.
@@ -69,7 +69,7 @@ namespace custom_config {
     const uint16_t eeprom_code = (private_::is_enabled) ? eeprom_uint16_t_code::DISABLED
                                                         : eeprom_uint16_t_code::ENABLED;
     eeprom_write_word(0, eeprom_code);
-    Serial.println(F("config toggled"));
+    // Serial.println(F("config toggled"));
 
     // TODO: if the writing failed surface an error condition.
 
@@ -81,8 +81,8 @@ namespace custom_config {
   // Change to given state. Assumes not already in this state.
   static inline void changeToState(uint8_t new_state) {
     state = new_state;
-    Serial.print(F("config state:"));
-    Serial.println(state);
+    // Serial.print(F("config state:"));
+    // Serial.println(state);
     time_in_state.restart();
   }
 
@@ -130,10 +130,10 @@ namespace custom_config {
         // This cannot overflow because we exist this state if exceeding
         // kExpectedButtonClicks.
         button_click_count++;
-        Serial.print(F("config state: "));
-        Serial.print(states::IGNITION_ON_COUNTING);
-        Serial.print('.');
-        Serial.println(button_click_count);
+        // Serial.print(F("config state: "));
+        // Serial.print(states::IGNITION_ON_COUNTING);
+        // Serial.print('.');
+        // Serial.println(button_click_count);
       }
       button_last_state = button_new_state;
     } break;
@@ -151,9 +151,9 @@ namespace custom_config {
 
     // Unknown state, set to initial.
     default:
-      Serial.print(F("config state: unknown ("));
-      Serial.print(state);
-      Serial.println(')');
+      // Serial.print(F("config state: unknown ("));
+      // Serial.print(state);
+      // Serial.println(')');
 
       // Go to a default state and wait there until ignition is off.
       changeToState(states::IGNITION_ON_IDLE);
