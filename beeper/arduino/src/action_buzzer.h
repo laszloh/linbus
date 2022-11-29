@@ -14,7 +14,6 @@
 #define BUZZER_H
 
 #include "avr_util.h"
-#include <arduino.h>
 
 // Controlled the buzzer signal on OC0B/PD5 pin. Uses timer 0.
 namespace action_buzzer {
@@ -26,7 +25,7 @@ extern void loop();
 
 // Buzzer wil keep beeping as long as this is called with true.
 // Calling with false  cancels pending actions.
-extern void action(boolean flag);
+extern void action(bool flag);
 } // namespace hardware_clock
 
 #endif

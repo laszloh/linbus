@@ -14,7 +14,6 @@
 #define HARDWARE_CLOCK_H
 
 #include "avr_util.h"
-#include <arduino.h>
 
 // Provides a free running 16 bit counter with 250 ticks per millisecond and
 // about 280 millis cycle time. Assuming 16Mhz clock.
@@ -28,22 +27,22 @@ extern void setup();
 // every ~280ms.
 // Assumes interrupts are enabled upon entry.
 // DO NOT CALL THIS FROM AN ISR.
-inline uint16 ticksForNonIsr() {
+inline uint16_t ticksForNonIsr() {
     // We disable interrupt to avoid corruption of the AVR temp byte buffer
     // that is used to read 16 bit values.
     // TODO: can we avoid disabling interrupts (motivation: improve LIN ISR jitter).
     cli();
-    const uint16 result TCNT1;
+    const uint16_t result TCNT1;
     sei();
     return result;
 }
 
 // Similar to ticksNonIsr but does not enable interrupts.
 // CALL THIS FROM ISR ONLY.
-inline uint16 ticksForIsr() { return TCNT1; }
+inline uint16_t ticksForIsr() { return TCNT1; }
 
 // @ 8Mhz / x64 prescaler. Number of ticks per a millisecond.
-constexpr uint32 kTicksPerMilli = ((F_CPU / 64) / 1000);
+constexpr uint32_t kTicksPerMilli = ((F_CPU / 64) / 1000);
 } // namespace hardware_clock
 
 #endif

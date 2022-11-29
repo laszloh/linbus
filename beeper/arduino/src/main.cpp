@@ -18,13 +18,6 @@
 #include "lin_processor.h"
 #include "sio.h"
 #include "system_clock.h"
-#include <Arduino.h>
-
-#define HW_RX_PIN 0
-#define LED_PIN 2
-#define SW_RX_PIN 3
-#define SW_TX_PIN 4
-
 
 // ERRORS LED - blinks when detecting errors.
 static ActionLed errors_activity_led(PORTB, 1);
@@ -52,76 +45,80 @@ void setup() {
 // This is a quick loop that does not use delay() or other busy loops or
 // blocking calls.
 void loop() {
-    // Having our own loop shaves about 4 usec per iteration. It also eliminate
-    // any underlying functionality that we may not want.
-    for(;;) {
-        // Periodic updates.
-        system_clock::loop();
-        sio::loop();
-        errors_activity_led.loop();
-        custom_module::loop();
+    // Periodic updates.
+    system_clock::loop();
+    sio::loop();
+    errors_activity_led.loop();
+    custom_module::loop();
 
-        // Print a periodic text messages if no activiy.
-        static PassiveTimer idle_timer;
-        if(idle_timer.timeMillis() >= 5000) {
-            sio::println(F("waiting..."));
+    // Print a periodic text messages if no activiy.
+    static PassiveTimer idle_timer;
+    if(idle_timer.timeMillis() >= 5000) {
+        sio::println(F("waiting..."));
+        idle_timer.restart();
+    }
+
+    // Handle LIN decoder error flags.
+    {
+        // Used to trigger periodic error printing.
+        static PassiveTimer lin_errors_timeout;
+        // Accomulates error flags until next printing.
+        static uint8_t pending_lin_errors = 0;
+
+        const uint8_t new_lin_errors = lin_processor::getAndClearErrorFlags();
+        if(new_lin_errors) {
+            // Make the ERRORS led blinking.
+            errors_activity_led.action();
             idle_timer.restart();
         }
 
-        // Handle LIN decoder error flags.
-        {
-            // Used to trigger periodic error printing.
-            static PassiveTimer lin_errors_timeout;
-            // Accomulates error flags until next printing.
-            static uint8 pending_lin_errors = 0;
-
-            const uint8 new_lin_errors = lin_processor::getAndClearErrorFlags();
-            if(new_lin_errors) {
-                // Make the ERRORS led blinking.
-                errors_activity_led.action();
-                idle_timer.restart();
-            }
-
-            // If pending errors and time to print then print and clear.
-            pending_lin_errors |= new_lin_errors;
-            if(pending_lin_errors && lin_errors_timeout.timeMillis() > 1000) {
-                sio::print(F("LIN errors: "));
-                lin_processor::printErrorFlags(pending_lin_errors);
-                sio::println();
-                lin_errors_timeout.restart();
-                pending_lin_errors = 0;
-            }
-        }
-
-        // Handle recieved LIN frames.
-        LinFrame frame;
-        if(lin_processor::readNextFrame(&frame)) {
-            const boolean frameOk = frame.isValid();
-
-            if(!frameOk) {
-                // Make the ERRORS frame blinking.
-                errors_activity_led.action();
-            }
-
-            // Print frame to serial port.
-            for(int i = 0; i < frame.num_bytes(); i++) {
-                if(i > 0) {
-                    sio::printchar(' ');
-                }
-                sio::printhex2(frame.get_byte(i));
-            }
-            if(!frameOk) {
-                sio::print(F(" ERR"));
-            }
+        // If pending errors and time to print then print and clear.
+        pending_lin_errors |= new_lin_errors;
+        if(pending_lin_errors && lin_errors_timeout.timeMillis() > 1000) {
+            sio::print(F("LIN errors: "));
+            lin_processor::printErrorFlags(pending_lin_errors);
             sio::println();
-            // Supress the 'waiting' messages.
-            idle_timer.restart();
-
-            if(frameOk) {
-                // Inform the custom logic about the incoming frame.
-                custom_module::frameArrived(frame);
-            }
+            lin_errors_timeout.restart();
+            pending_lin_errors = 0;
         }
+    }
+
+    // Handle recieved LIN frames.
+    LinFrame frame;
+    if(lin_processor::readNextFrame(&frame)) {
+        const bool frameOk = frame.isValid();
+
+        if(!frameOk) {
+            // Make the ERRORS frame blinking.
+            errors_activity_led.action();
+        }
+
+        // Print frame to serial port.
+        for(int i = 0; i < frame.num_bytes(); i++) {
+            if(i > 0) {
+                sio::printchar(' ');
+            }
+            sio::printhex2(frame.get_byte(i));
+        }
+        if(!frameOk) {
+            sio::print(F(" ERR"));
+        }
+        sio::println();
+        // Supress the 'waiting' messages.
+        idle_timer.restart();
+
+        if(frameOk) {
+            // Inform the custom logic about the incoming frame.
+            custom_module::frameArrived(frame);
+        }
+    }
+}
+
+__attribute__((OS_main)) int main(void) {
+    setup();
+
+    while(1) {
+        loop();
     }
 }
 

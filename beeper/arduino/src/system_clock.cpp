@@ -14,21 +14,20 @@
 
 #include "avr_util.h"
 #include "hardware_clock.h"
-#include <arduino.h>
 
 namespace system_clock {
-static const uint16 kTicksPerMilli = hardware_clock::kTicksPerMilli;
-static const uint16 kTicksPer10Millis = 10 * kTicksPerMilli;
+static const uint16_t kTicksPerMilli = hardware_clock::kTicksPerMilli;
+static const uint16_t kTicksPer10Millis = 10 * kTicksPerMilli;
 
-static uint16 accounted_ticks = 0;
-static uint32 time_millis = 0;
+static uint16_t accounted_ticks = 0;
+static uint32_t time_millis = 0;
 
 void loop() {
-    const uint16 current_ticks = hardware_clock::ticksForNonIsr();
+    const uint16_t current_ticks = hardware_clock::ticksForNonIsr();
 
     // This 16 bit unsigned arithmetic works well also in case of a timer overflow.
     // Assuming at least two loops per timer cycle.
-    uint16 delta_ticks = current_ticks - accounted_ticks;
+    uint16_t delta_ticks = current_ticks - accounted_ticks;
 
     // A course increment loop in case we have a large update interval. Improves
     // runtime over the single milli update loop below.
@@ -46,6 +45,6 @@ void loop() {
     }
 }
 
-uint32 timeMillis() { return time_millis; }
+uint32_t timeMillis() { return time_millis; }
 
 } // namespace system_clock

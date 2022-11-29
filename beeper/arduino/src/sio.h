@@ -14,7 +14,9 @@
 #define SIO_H
 
 #include "avr_util.h"
-#include <arduino.h>
+
+class __FlashStringHelper;
+#define F(string_literal) (reinterpret_cast<const __FlashStringHelper *>(PSTR(string_literal)))
 
 // A serial output that uses hardware UART0 and no interrupts (for lower
 // interrupt jitter). Requires periodic calls to update() to send buffered
@@ -32,16 +34,16 @@ extern void loop();
 
 // Momentary size of free space in the output buffer. Sending at most this number
 // of characters will not loose any byte.
-extern uint8 capacity();
+extern uint8_t capacity();
 
-extern void printchar(uint8 b);
+extern void printchar(uint8_t b);
 extern void print(const __FlashStringHelper *str);
 extern void println(const __FlashStringHelper *str);
 extern void print(const char *str);
 extern void println(const char *str);
 extern void println();
 extern void printf(const __FlashStringHelper *format, ...);
-extern void printhex2(uint8 b);
+extern void printhex2(uint8_t b);
 
 // Wait in a busy loop until all bytes were flushed to the UART.
 // Avoid using this when possible. Useful when needing to print

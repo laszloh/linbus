@@ -53,7 +53,7 @@ void frameArrived(const LinFrame& frame) {
     custom_signals::frameArrived(frame);
 
     // We handle here only framed of id 39 with the reverse signal.
-    const uint8 id = frame.get_byte(0);
+    const uint8_t id = frame.get_byte(0);
     if(id != 0x39) {
         return;
     }
@@ -66,8 +66,8 @@ void frameArrived(const LinFrame& frame) {
     // Specific logic for P981/CS linbus of the homelink console. Triggers the
     // buzzer when rear gear is engaged.
     // Test frame: 39 04 00 00 00 00 00.
-    const boolean reverse_gear = frame.get_byte(1) & H(2);
-    const boolean feature_enabled = custom_config::is_enabled();
+    const bool reverse_gear = frame.get_byte(1) & H(2);
+    const bool feature_enabled = custom_config::is_enabled();
     action_buzzer::action(reverse_gear && feature_enabled);
 }
 

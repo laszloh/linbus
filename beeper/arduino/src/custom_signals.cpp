@@ -40,12 +40,12 @@ void loop() {
 // Handling of frame from sport mode button unit.
 void frameArrived(const LinFrame& frame) {
     // Get frame id.
-    const uint8 id = frame.get_byte(0);
+    const uint8_t id = frame.get_byte(0);
 
     // Handle the frame with config button status bit.
     if(id == 0x97) {
         if(frame.num_bytes() == (1 + 5 + 1)) {
-            const boolean button_is_pressed = frame.get_byte(4) & H(7);
+            const bool button_is_pressed = frame.get_byte(4) & H(7);
             private_::button_signal_tracker.reportSignal(button_is_pressed);
         }
         return;
@@ -54,7 +54,7 @@ void frameArrived(const LinFrame& frame) {
     // Handle the frame with ignition state status bit.
     if(id == 0x50) {
         if(frame.num_bytes() == (1 + 8 + 1)) {
-            const boolean is_ignition_bit_on = frame.get_byte(1) & H(0);
+            const bool is_ignition_bit_on = frame.get_byte(1) & H(0);
             private_::ignition_on_signal_tracker.reportSignal(is_ignition_bit_on);
         }
         return;

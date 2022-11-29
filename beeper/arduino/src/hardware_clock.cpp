@@ -13,7 +13,6 @@
 #include "hardware_clock.h"
 
 #include "avr_util.h"
-#include <arduino.h>
 
 namespace hardware_clock {
 

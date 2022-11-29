@@ -14,7 +14,6 @@
 #define SYS_CLOCK_H
 
 #include "hardware_clock.h"
-#include <arduino.h>
 
 // Uses the hardware clock to provide a 32 bit milliseconds time since program start.
 // The 32 milliseconds time has about 54 days cycle time.
@@ -26,7 +25,7 @@ extern void loop();
 
 // Return time of last update() in millis since program start. Returns zero if update() was
 // never called.
-extern uint32 timeMillis();
+extern uint32_t timeMillis();
 
 } // namespace system_clock
 

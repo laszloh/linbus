@@ -30,24 +30,24 @@ extern void setup();
 // given buffer. Otherwise, return false and leave *buffer unmodified.
 // The sync, id and checksum bytes of the frame as well as the total byte
 // count are not verified.
-extern boolean readNextFrame(LinFrame* buffer);
+extern bool readNextFrame(LinFrame* buffer);
 
 // Errors byte masks for the individual error bits.
 namespace errors {
-static const uint8 FRAME_TOO_SHORT = (1 << 0);
-static const uint8 FRAME_TOO_LONG = (1 << 1);
-static const uint8 START_BIT = (1 << 2);
-static const uint8 STOP_BIT = (1 << 3);
-static const uint8 SYNC_BYTE = (1 << 4);
-static const uint8 BUFFER_OVERRUN = (1 << 5);
-static const uint8 OTHER = (1 << 6);
+static const uint8_t FRAME_TOO_SHORT = (1 << 0);
+static const uint8_t FRAME_TOO_LONG = (1 << 1);
+static const uint8_t START_BIT = (1 << 2);
+static const uint8_t STOP_BIT = (1 << 3);
+static const uint8_t SYNC_BYTE = (1 << 4);
+static const uint8_t BUFFER_OVERRUN = (1 << 5);
+static const uint8_t OTHER = (1 << 6);
 }
 
 // Get current error flag and clear it.
 extern bool getAndClearErrorFlags();
 
 // Print to sio a list of error flags.
-extern void printErrorFlags(uint8 lin_errors);
+extern void printErrorFlags(uint8_t lin_errors);
 }
 
 #endif

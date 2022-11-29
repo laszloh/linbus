@@ -29,7 +29,7 @@
 namespace custom_config {
 namespace private_ {
 // True when beeper feature is enabled.
-extern boolean is_enabled;
+extern bool is_enabled;
 }
 
 // Called once during initialization.
@@ -38,7 +38,7 @@ extern void setup();
 // Called once on each iteration of the Arduino main loop().
 extern void loop();
 
-inline boolean is_enabled() { return private_::is_enabled; }
+inline bool is_enabled() { return private_::is_enabled; }
 
 } // namespace custom_config
 

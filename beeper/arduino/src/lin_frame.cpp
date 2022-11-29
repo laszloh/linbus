@@ -15,23 +15,23 @@
 #include "custom_defs.h"
 
 // Compute the checksum of the frame. For now using LIN checksum V2 only.
-uint8 LinFrame::computeChecksum() const {
+uint8_t LinFrame::computeChecksum() const {
     // LIN V2 checksum includes the ID byte, V1 does not.
-    const uint8 startByteIndex = custom_defs::kUseLinChecksumVersion2 ? 0 : 1;
-    const uint8* p = &bytes_[startByteIndex];
+    const uint8_t startByteIndex = custom_defs::kUseLinChecksumVersion2 ? 0 : 1;
+    const uint8_t* p = &bytes_[startByteIndex];
 
     // Exclude the checksum byte at the end of the frame.
-    uint8 numBytesToChecksum = num_bytes_ - startByteIndex - 1;
+    uint8_t numBytesToChecksum = num_bytes_ - startByteIndex - 1;
 
     // Sum bytes. We should not have 16 bit overflow here since the frame has a limited size.
-    uint16 sum = 0;
+    uint16_t sum = 0;
     while(numBytesToChecksum-- > 0) {
         sum += *(p++);
     }
 
     // Keep adding the high and low bytes until no carry.
     for(;;) {
-        const uint8 highByte = (uint8)(sum >> 8);
+        const uint8_t highByte = (uint8_t)(sum >> 8);
         if(!highByte) {
             break;
         }
@@ -39,19 +39,19 @@ uint8 LinFrame::computeChecksum() const {
         sum = (sum & 0xff) + highByte;
     }
 
-    return (uint8)(~sum);
+    return (uint8_t)(~sum);
 }
 
 
-uint8 LinFrame::setLinIdChecksumBits(uint8 id) {
+uint8_t LinFrame::setLinIdChecksumBits(uint8_t id) {
     // The algorithm is optimized for CPU time (avoiding individual shifts per id
     // bit). Using registers for the two checksum bits. P1 is computed in bit 7 of
     // p1_at_b7 and p0 is comptuted in bit 6 of p0_at_b6.
-    uint8 p1_at_b7 = ~0;
-    uint8 p0_at_b6 = 0;
+    uint8_t p1_at_b7 = ~0;
+    uint8_t p0_at_b6 = 0;
 
     // P1: id5, P0: id4
-    uint8 shifter = id << 2;
+    uint8_t shifter = id << 2;
     p1_at_b7 ^= shifter;
     p0_at_b6 ^= shifter;
 
@@ -76,8 +76,8 @@ uint8 LinFrame::setLinIdChecksumBits(uint8 id) {
     return (p1_at_b7 & 0b10000000) | (p0_at_b6 & 0b01000000) | (id & 0b00111111);
 }
 
-boolean LinFrame::isValid() const {
-    const uint8 n = num_bytes_;
+bool LinFrame::isValid() const {
+    const uint8_t n = num_bytes_;
 
     // Check frame size.
     // One ID byte with optional 1-8 data bytes and 1 checksum byte.
@@ -90,7 +90,7 @@ boolean LinFrame::isValid() const {
     }
 
     // Check ID byte checksum bits.
-    const uint8 id_byte = bytes_[0];
+    const uint8_t id_byte = bytes_[0];
     if(id_byte != setLinIdChecksumBits(id_byte)) {
         return false;
     }

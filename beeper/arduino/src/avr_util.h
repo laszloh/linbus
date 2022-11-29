@@ -13,16 +13,11 @@
 #ifndef AVR_UTIL_H
 #define AVR_UTIL_H
 
-#include <arduino.h>
+#include <avr/io.h>
+#include <avr/interrupt.h>
+#include <avr/pgmspace.h>
 
-// Get rid of the _t type suffix.
-typedef uint8_t uint8;
-typedef uint16_t uint16;
-typedef uint32_t uint32;
-
-typedef int8_t int8;
-typedef int16_t int16;
-typedef int32_t int32;
+#include <stdint.h>
 
 // Bit index to bit mask.
 // AVR registers bit indices are defined in iom328p.h.
@@ -33,11 +28,11 @@ typedef int32_t int32;
 
 // Private data. Do not use from other modules.
 namespace avr_util_private {
-extern const byte kBitMaskArray[];
+extern const uint8_t kBitMaskArray[];
 }
 
 // Similar to (1 << bit_index) but more efficient for non consts. For
 // const masks use H(n). Undefined result if it_index not in [0, 7].
-inline byte bitMask(byte bit_index) { return *(avr_util_private::kBitMaskArray + bit_index); }
+inline uint8_t bitMask(uint8_t bit_index) { return *(avr_util_private::kBitMaskArray + bit_index); }
 
 #endif

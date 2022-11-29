@@ -13,6 +13,7 @@
 #include "sio.h"
 
 #include <stdarg.h>
+#include <stdio.h>
 
 namespace sio {
 // TODO: do we need to set the i/o pins (PD0, PD1)? Do we rely on setting by
@@ -21,17 +22,17 @@ namespace sio {
 // Size of output bytes queue. Shuold be <= 128 to avoid overflow.
 // TODO: reduce buffer size? Do we have enough RAM?
 // TODO: increase index size to 16 bit and increase buffer size to 200?
-static const uint8 kQueueSize = 120;
-static uint8 buffer[kQueueSize];
+static const uint8_t kQueueSize = 120;
+static uint8_t buffer[kQueueSize];
 // Index of the oldest entry in buffer.
-static uint8 start;
+static uint8_t start;
 // Number of bytes in queue.
-static uint8 count;
+static uint8_t count;
 
 // Caller need to verify that count < kQueueSize before calling this.
-static void unsafe_enqueue(byte b) {
+static void unsafe_enqueue(uint8_t b) {
     // kQueueSize is small enough that this will not overflow.
-    uint8 next = start + count;
+    uint8_t next = start + count;
     if(next >= kQueueSize) {
         next -= kQueueSize;
     }
@@ -40,8 +41,8 @@ static void unsafe_enqueue(byte b) {
 }
 
 // Caller need to verify that count > 1 before calling this.
-static byte unsafe_dequeue() {
-    const uint8 b = buffer[start];
+static uint8_t unsafe_dequeue() {
+    const uint8_t b = buffer[start];
     if(++start >= kQueueSize) {
         start = 0;
     }
@@ -53,7 +54,7 @@ void setup() {
     start = 0;
     count = 0;
 
-    uint16 baud_settings = (F_CPU / 4 / baud-1 ) /2;
+    uint16_t baud_settings = (F_CPU / 4 / baud-1 ) /2;
 
     UCSR0A = H(U2X0);
     if((F_CPU == 16000000UL && baud == 57600) || baud_settings > 4095) {
@@ -71,7 +72,7 @@ void setup() {
     UCSR0C = H(UDORD0) | H(UCPHA0); //(3 << UCSZ00);
 }
 
-void printchar(uint8 c) {
+void printchar(uint8_t c) {
     // If buffer is full, drop this char.
     // TODO: drop last byte to make room for the new byte?
     if(count >= kQueueSize) {
@@ -86,7 +87,7 @@ void loop() {
     }
 }
 
-uint8 capacity() { return kQueueSize - count; }
+uint8_t capacity() { return kQueueSize - count; }
 
 void waitUntilFlushed() {
     // Busy loop until all flushed to UART.
@@ -96,7 +97,7 @@ void waitUntilFlushed() {
 }
 
 // Assuming n is in [0, 15].
-static void printHexDigit(uint8 n) {
+static void printHexDigit(uint8_t n) {
     if(n < 10) {
         printchar((char)('0' + n));
     } else {
@@ -104,7 +105,7 @@ static void printHexDigit(uint8 n) {
     }
 }
 
-void printhex2(uint8 b) {
+void printhex2(uint8_t b) {
     printHexDigit(b >> 4);
     printHexDigit(b & 0xf);
 }
