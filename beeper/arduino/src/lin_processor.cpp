@@ -116,15 +116,15 @@ Config config;
 // This way we shave a few cycles from the ISR.
 
 // LIN interface.
-DEFINE_INPUT_PIN(rx_pin, D, 2);
+DEFINE_INPUT_PIN(rx_pin, B, 0);
 // TODO: tie this pin to the TX pin of the ata6631 ic, for future applications.
-DEFINE_OUTPUT_PIN(tx1_pin, C, 2, 1);
+DEFINE_OUTPUT_PIN(tx1_pin, B, 1, 1);
 
 // Debugging signals.
 DEFINE_OUTPUT_PIN(break_pin, C, 0, 0);
-DEFINE_OUTPUT_PIN(sample_pin, B, 4, 0);
-DEFINE_OUTPUT_PIN(error_pin, B, 3, 0);
-DEFINE_OUTPUT_PIN(isr_pin, C, 3, 0);
+DEFINE_OUTPUT_PIN(sample_pin, C, 1, 0);
+DEFINE_OUTPUT_PIN(error_pin, D, 4, 0);
+DEFINE_OUTPUT_PIN(isr_pin, D, 5, 0);
 DEFINE_OUTPUT_PIN(gp_pin, D, 6, 0);
 
 // Called one during initialization.
