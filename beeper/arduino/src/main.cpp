@@ -18,6 +18,9 @@
 #include "lin_processor.h"
 #include "sio.h"
 #include "system_clock.h"
+#include "FastLED.h"
+
+CRGB leds[10];
 
 // ERRORS LED - blinks when detecting errors.
 static ActionLed errors_activity_led(PORTB, 1);
