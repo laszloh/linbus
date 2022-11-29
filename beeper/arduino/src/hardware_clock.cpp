@@ -17,14 +17,10 @@
 
 namespace hardware_clock {
 
-#if F_CPU != 16000000
-#error "The existing code assumes 16Mhz CPU clk."
-#endif
-
 void setup() {
     // Normal mode (free running [0, ffff]).
     TCCR1A = L(COM1A1) | L(COM1A0) | L(COM1B1) | L(COM1B0) | L(WGM11) | L(WGM10);
-    // Prescaler: X64 (250 clocks per ms @ 16MHz). 2^16 clock cycle every ~260ms.
+    // Prescaler: X64 (125 clocks per ms @ 8MHz). 2^16 clock cycle every ~520ms.
     // This also defines the max update() interval to avoid missing a counter overflow.
     TCCR1B = L(ICNC1) | L(ICES1) | L(WGM13) | L(WGM12) | L(CS12) | H(CS11) | H(CS10);
     // Clear counter.

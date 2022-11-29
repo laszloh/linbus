@@ -44,7 +44,7 @@ static const uint8 OTHER = (1 << 6);
 }
 
 // Get current error flag and clear it.
-extern uint8 getAndClearErrorFlags();
+extern bool getAndClearErrorFlags();
 
 // Print to sio a list of error flags.
 extern void printErrorFlags(uint8 lin_errors);

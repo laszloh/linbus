@@ -24,6 +24,8 @@
 // TX Input  - TXD (PD0) - pin 30 (currently not used).
 namespace sio {
 
+constexpr auto baud = 115200;
+
 // Call from main setup() and loop() respectivly.
 extern void setup();
 extern void loop();

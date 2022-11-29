@@ -65,9 +65,6 @@ namespace lin_processor {
 
 class Config {
 public:
-#if F_CPU != 16000000
-#error "The existing code assumes 16Mhz CPU clk."
-#endif
     // Initialized to given baud rate.
     void setup() {
         // If baud rate out of range use default speed.
@@ -79,7 +76,7 @@ public:
         baud_ = baud;
         prescaler_x64_ = baud < 8000;
         const uint8 prescaling = prescaler_x64_ ? 64 : 8;
-        counts_per_bit_ = (((16000000L / prescaling) / baud));
+        counts_per_bit_ = (((F_CPU / prescaling) / baud));
         // Adding two counts to compensate for software delay.
         counts_per_half_bit_ = (counts_per_bit_ / 2) + 2;
         clock_ticks_per_bit_ = (hardware_clock::kTicksPerMilli * 1000) / baud;
@@ -89,7 +86,7 @@ public:
 
     inline uint16 baud() const { return baud_; }
 
-    inline boolean prescaler_x64() { return prescaler_x64_; }
+    inline bool prescaler_x64() { return prescaler_x64_; }
 
     inline uint8 counts_per_bit() const { return counts_per_bit_; }
     inline uint8 counts_per_half_bit() const { return counts_per_half_bit_; }
@@ -102,7 +99,7 @@ private:
     // False -> x8, true -> x64.
     // TODO: timer2 also have x32 scalingl Could use it for better
     // accuracy in the mid baude range.
-    boolean prescaler_x64_;
+    bool prescaler_x64_;
     uint8 counts_per_bit_;
     uint8 counts_per_half_bit_;
     uint8 clock_ticks_per_bit_;
@@ -193,8 +190,8 @@ static inline void waitForIsrEnd() {
 }
 
 // Public. Called from main. See .h for description.
-boolean readNextFrame(LinFrame* buffer) {
-    boolean result = false;
+bool readNextFrame(LinFrame* buffer) {
+    bool result = false;
     waitForIsrEnd();
     cli();
     if(tail_frame_buffer != head_frame_buffer) {
@@ -254,7 +251,7 @@ private:
 // ----- Error Flag. -----
 
 // Written from ISR. Read/Write from main.
-static volatile boolean error_flags;
+static volatile bool error_flags;
 
 // Private. Called from ISR and from setup (beofe starting the ISR).
 static inline void setErrorFlags(uint8 flags) {
@@ -266,11 +263,11 @@ static inline void setErrorFlags(uint8 flags) {
 
 // Called from main. Public. Assumed interrupts are enabled.
 // Do not call from ISR.
-boolean getAndClearErrorFlags() {
+bool getAndClearErrorFlags() {
     // Disabling interrupts for a brief for atomicity. Need to pay attention to
     // ISR jitter due to disabled interrupts.
     cli();
-    const boolean result = error_flags;
+    const bool result = error_flags;
     error_flags = 0;
     sei();
     return result;
@@ -290,7 +287,7 @@ static const BitName kErrorBitNames[] PROGMEM = {
 // of set errors.
 void printErrorFlags(uint8 lin_errors) {
     const uint8 n = ARRAY_SIZE(kErrorBitNames);
-    boolean any_printed = false;
+    bool any_printed = false;
     for(uint8 i = 0; i < n; i++) {
         const uint8 mask = pgm_read_byte(&kErrorBitNames[i].mask);
         if(lin_errors & mask) {
@@ -368,7 +365,7 @@ static inline void setTimerToHalfTick() {
 // of clock ticks passed (timeout). Retuns true if ok,
 // false if timeout. Keeps timer reset during the wait.
 // Called from ISR only.
-static inline boolean waitForRxLow(uint16 max_clock_ticks) {
+static inline bool waitForRxLow(uint16 max_clock_ticks) {
     const uint16 base_clock = hardware_clock::ticksForIsr();
     for(;;) {
         // Keep the tick timer not ticking (no ISR).
@@ -391,7 +388,7 @@ static inline boolean waitForRxLow(uint16 max_clock_ticks) {
 // Same as waitForRxLow but with reversed polarity.
 // We clone to code for time optimization.
 // Called from ISR only.
-static inline boolean waitForRxHigh(uint16 max_clock_ticks) {
+static inline bool waitForRxHigh(uint16 max_clock_ticks) {
     const uint16 base_clock = hardware_clock::ticksForIsr();
     for(;;) {
         resetTickTimer();
@@ -524,7 +521,7 @@ inline void StateReadData::handleIsr() {
     }
 
     // Wait for the high to low transition of start bit of next byte.
-    const boolean has_more_bytes = waitForRxLow(config.clock_ticks_per_until_start_bit());
+    const bool has_more_bytes = waitForRxLow(config.clock_ticks_per_until_start_bit());
 
     // Handle the case of no more bytes in this frame.
     if(!has_more_bytes) {
@@ -570,7 +567,7 @@ inline void StateReadData::handleIsr() {
 // Interrupt on Timer 2 A-match.
 ISR(TIMER2_COMPA_vect) {
     isr_pin::setHigh();
-    // TODO: make this state a boolean instead of enum? (efficency).
+    // TODO: make this state a bool instead of enum? (efficency).
     switch(state) {
         case states::DETECT_BREAK:
             StateDetectBreak::handleIsr();

@@ -53,15 +53,19 @@ void setup() {
     start = 0;
     count = 0;
 
-#if F_CPU != 16000000
-#error "The existing code assumes 16Mhz CPU clk."
-#endif
+    uint16 baud_settings = (F_CPU / 4 / baud-1 ) /2;
+
+    UCSR0A = H(U2X0);
+    if((F_CPU == 16000000UL && baud == 57600) || baud_settings > 4095) {
+        // switch back to single speed
+        UCSR0A = L(U2X0);
+        baud_settings = (F_CPU / 8 / baud-1 ) /2;
+    }
+
     // For devisors see table 19-12 in the atmega328p datasheet.
     // U2X0, 16 -> 115.2k baud @ 16MHz.
     // U2X0, 207 -> 9600 baud @ 16Mhz.
-    UBRR0H = 0;
-    UBRR0L = 16;
-    UCSR0A = H(U2X0);
+    UBRR0 = baud_settings;
     // Enable  the transmitter. Reciever is disabled.
     UCSR0B = H(TXEN0);
     UCSR0C = H(UDORD0) | H(UCPHA0); //(3 << UCSZ00);

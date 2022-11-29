@@ -42,12 +42,8 @@ inline uint16 ticksForNonIsr() {
 // CALL THIS FROM ISR ONLY.
 inline uint16 ticksForIsr() { return TCNT1; }
 
-#if F_CPU != 16000000
-#error "The existing code assumes 16Mhz CPU clk."
-#endif
-
-// @ 16Mhz / x64 prescaler. Number of ticks per a millisecond.
-const uint32 kTicksPerMilli = 250;
+// @ 8Mhz / x64 prescaler. Number of ticks per a millisecond.
+constexpr uint32 kTicksPerMilli = ((F_CPU / 64) / 1000);
 } // namespace hardware_clock
 
 #endif
