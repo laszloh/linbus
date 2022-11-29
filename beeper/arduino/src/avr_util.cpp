@@ -17,15 +17,7 @@ namespace avr_util_private {
 // Using lookup to avoid individual bit shifting. This is faster
 // than (1 << n) or a switch/case statement.
 const byte kBitMaskArray[] = {
-  H(0),
-  H(1),
-  H(2),
-  H(3),
-  H(4),
-  H(5),
-  H(6),
-  H(7),
+    H(0), H(1), H(2), H(3), H(4), H(5), H(6), H(7),
 };
 
-}  // namespace avr_util_private
-
+} // namespace avr_util_private

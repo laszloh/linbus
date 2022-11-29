@@ -13,24 +13,21 @@
 #ifndef SYS_CLOCK_H
 #define SYS_CLOCK_H
 
-#include <arduino.h>
 #include "hardware_clock.h"
+#include <arduino.h>
 
 // Uses the hardware clock to provide a 32 bit milliseconds time since program start.
 // The 32 milliseconds time has about 54 days cycle time.
 namespace system_clock {
-  // Call once per main loop(). Updates the internal millis clock based on the hardware
-  // clock. A calling interval of larger than 280ms will result in loosing time due
-  // to hardware clock overflow.
-  extern void loop();
+// Call once per main loop(). Updates the internal millis clock based on the hardware
+// clock. A calling interval of larger than 280ms will result in loosing time due
+// to hardware clock overflow.
+extern void loop();
 
-  // Return time of last update() in millis since program start. Returns zero if update() was
-  // never called. 
-  extern uint32 timeMillis();
- 
-}  // namespace system_clock
+// Return time of last update() in millis since program start. Returns zero if update() was
+// never called.
+extern uint32 timeMillis();
 
-#endif  
+} // namespace system_clock
 
-
-
+#endif

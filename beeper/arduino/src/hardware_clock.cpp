@@ -12,8 +12,8 @@
 
 #include "hardware_clock.h"
 
-#include <arduino.h>
 #include "avr_util.h"
+#include <arduino.h>
 
 namespace hardware_clock {
 
@@ -25,7 +25,7 @@ void setup() {
     // Normal mode (free running [0, ffff]).
     TCCR1A = L(COM1A1) | L(COM1A0) | L(COM1B1) | L(COM1B0) | L(WGM11) | L(WGM10);
     // Prescaler: X64 (250 clocks per ms @ 16MHz). 2^16 clock cycle every ~260ms.
-    // This also defines the max update() interval to avoid missing a counter overflow. 
+    // This also defines the max update() interval to avoid missing a counter overflow.
     TCCR1B = L(ICNC1) | L(ICES1) | L(WGM13) | L(WGM12) | L(CS12) | H(CS11) | H(CS10);
     // Clear counter.
     TCNT1 = 0;
@@ -35,10 +35,7 @@ void setup() {
     OCR1B = 0;
     // Diabled interrupts.
     TIMSK1 = L(ICIE1) | L(OCIE1B) | L(OCIE1A) | L(TOIE1);
-    TIFR1 = L(ICF1) | L(OCF1B) | L(OCF1A) | L(TOV1);     
-  }
-  
-}  // namespace hardware_clock
+    TIFR1 = L(ICF1) | L(OCF1B) | L(OCF1A) | L(TOV1);
+}
 
-
-
+} // namespace hardware_clock

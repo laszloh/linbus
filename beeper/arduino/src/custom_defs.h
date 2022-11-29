@@ -15,22 +15,20 @@
 
 #include "avr_util.h"
 
-// Custom application specific parameters. 
+// Custom application specific parameters.
 //
-// Like all the other custom_* files, this file should be adapted to the specific application. 
+// Like all the other custom_* files, this file should be adapted to the specific application.
 // The example provided is for a Sport Mode button press injector for 981/Cayman.
 namespace custom_defs {
 
-  // True for LIN checksum V2 (enahanced). False for LIN checksum version 1.
-  const boolean kUseLinChecksumVersion2 = true;
+// True for LIN checksum V2 (enahanced). False for LIN checksum version 1.
+const boolean kUseLinChecksumVersion2 = true;
 
-  // LIN bus bits per second rate.
-  // Supported baud range is 1000 to 20000. If out of range, using silently default
-  // baud of 9600.
-  const uint16 kLinSpeed = 19200;
-  
-}  // namepsace custom_defs
+// LIN bus bits per second rate.
+// Supported baud range is 1000 to 20000. If out of range, using silently default
+// baud of 9600.
+const uint16 kLinSpeed = 19200;
+
+} // namepsace custom_defs
 
 #endif
-
-

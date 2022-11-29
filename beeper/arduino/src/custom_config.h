@@ -27,22 +27,19 @@
 // Like all the other custom_* files, this file should be adapted to the specific application.
 // The example provided is for a Reverse Gear beeper for the 981/Cayman.
 namespace custom_config {
-  namespace private_ {
-    // True when beeper feature is enabled.
-    extern boolean is_enabled;
-  }
+namespace private_ {
+// True when beeper feature is enabled.
+extern boolean is_enabled;
+}
 
-  // Called once during initialization.
-  extern void setup();
+// Called once during initialization.
+extern void setup();
 
-  // Called once on each iteration of the Arduino main loop().
-  extern void loop();
-  
-  inline boolean is_enabled() {
-    return private_::is_enabled;
-  }
+// Called once on each iteration of the Arduino main loop().
+extern void loop();
 
-}  // namespace custom_config
+inline boolean is_enabled() { return private_::is_enabled; }
+
+} // namespace custom_config
 
 #endif
-

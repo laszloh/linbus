@@ -18,16 +18,15 @@
 
 // Implement a car model specific functionality.
 namespace custom_module {
-  // Called once during initialization.
-  extern void setup();
+// Called once during initialization.
+extern void setup();
 
-  // Called once on each iteration of the Arduino main loop().
-  extern void loop();
+// Called once on each iteration of the Arduino main loop().
+extern void loop();
 
-  // Called once when a new valid frame was recieved.
-  extern void frameArrived(const LinFrame& frame);
-  
-}  // namespace custom_module
+// Called once when a new valid frame was recieved.
+extern void frameArrived(const LinFrame& frame);
+
+} // namespace custom_module
 
 #endif
-
